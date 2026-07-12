@@ -59,17 +59,17 @@ interface LlmService {
 
 - uploads·profiles 접근은 formal interface 없이 단순 함수(`services/`). mock/real 반환 타입은 **완전히 동일**, mock은 결정적 값 반환.
 - `ColumnMappingInput`: `{ headers: string[]; sampleRows: string[][]; locale: 'ko-KR' }`. `sampleRows`는 데이터 행 최대 20개, 헤더 중복 미포함.
-- `ColumnMappingResult`: `{ mapping; confidence; missingRequired; alternatives; rationale }`. `confidence < 0.75` 또는 `missingRequired` 있으면 자동 확정 금지 → 수동 매핑 스텝.
+- `ColumnMappingResult`: `{ mapping; confidence; missingRequired }`. `confidence < 0.75` 또는 `missingRequired` 있으면 자동 확정 금지 → 수동 매핑 스텝. (`alternatives`·`rationale`는 로드맵 — 확인 UI가 전 컬럼 드롭다운을 제공하므로 MVP엔 불필요.)
 
 ## 데이터 모델 (Supabase Postgres · RLS on, 모든 행 `user_id = auth.uid()`)
 
 | 테이블 | 핵심 컬럼 |
 | --- | --- |
-| `profiles` | `id`(=auth uid), `plan`('free'\|'pro', **진실 원천**, Polar 웹훅으로만 갱신), `polar_subscription_id`, `polar_customer_id`, `plan_valid_until` |
+| `profiles` | `id`(=auth uid), `plan`('free'\|'pro', **진실 원천**, Polar 웹훅으로만 갱신), `polar_subscription_id`, `polar_customer_id` |
 | `uploads` | `id`, `user_id`, `file_path`(비공개 Storage), `original_name`, `status`('parsing'\|'done'\|'error'), `error_message` |
 | `transactions` | `id`, `user_id`, `upload_id`, `occurred_on`(date), `merchant`, `amount`(**integer, KRW 원, ≥0**), `direction`('expense'\|'income'), `category`(enum), `raw`(jsonb) |
 | `analyses` | `id`, `user_id`, `period`, `summary`, `insights`(jsonb) — Pro 지출 진단 리포트, user·기간 스코프 |
-| `subscriptions` | `id`, `user_id`, `merchant`, `amount`, `cadence`, `confidence`, `evidence_count`, `last_seen_on`, `active` |
+| `subscriptions` | `id`, `user_id`, `merchant`, `amount`, `cadence`, `confidence`, `last_seen_on` |
 
 - **`amount`는 부호 없는 정수(원)**, 지출/수입 구분은 `direction`으로만. 부호 저장 금지(파서별로 흔들려 집계가 깨짐).
 - 환불·매입취소는 `direction='income'`으로 정규화(순지출 = 지출 − 환입). 해외 거래는 원화 청구액만(원통화는 `raw`).
