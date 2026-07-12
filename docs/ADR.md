@@ -18,10 +18,10 @@
 **이유**: 세 가지를 한 곳에서 + RLS로 크로스테넌트 격리를 DB 레벨에서 강제. 한국 소비자 대상이라 카카오로 가입 장벽을 최소화하고 전환율을 높인다. 비밀번호 관리 불필요.
 **트레이드오프**: 벤더 종속. 카카오는 Supabase 기본 provider가 아니라 커스텀 OIDC 설정이 필요(초기 셋업 비용). service-role 키 오남용 시 RLS 우회 위험 → **service-role은 Polar 웹훅 plan 갱신에만** 사용으로 제한.
 
-### ADR-003: Claude API (`claude-opus-4-8`), 얇은 추상화
-**결정**: LLM은 Claude API(`@anthropic-ai/sdk`), 모델 `claude-opus-4-8`(Opus 4.8) 고정. `LlmService` 인터페이스로 얇게 추상화. 어댑티브 씽킹(`thinking:{type:"adaptive"}`), effort는 작업별 차등, 구조화 출력은 `output_config.format`.
-**이유**: 컬럼 매핑·지출 진단 리포트에 고품질 추론이 필요. 얇은 추상화로 mock/live 교체와 프롬프트 격리.
-**트레이드오프**: 단가 $5/$25 per 1M(Sonnet의 ~1.67배) → 비용 통제책(ADR-004)이 필수 전제. `budget_tokens`·`temperature`·마지막 assistant 프리필은 400(사용 금지).
+### ADR-003: Claude API — 플랜별 모델 (Sonnet=Free / Opus=Pro), 얇은 추상화
+**결정**: LLM은 Claude API(`@anthropic-ai/sdk`). 플랜별로 모델을 차등한다 — **Free 분석은 `claude-sonnet-4-6`(Sonnet 4.6)**, **Pro 심화 지출 진단 리포트는 `claude-opus-4-8`(Opus 4.8)**. 컬럼 매핑은 공통으로 Sonnet 사용. 모델 선택은 `LlmService` 뒤에 숨겨 얇게 추상화. 어댑티브 씽킹(`thinking:{type:"adaptive"}`), effort는 작업별 차등, 구조화 출력은 `output_config.format`.
+**이유**: Free에도 Claude 분석을 제공하되 저단가 Sonnet($3/$15 per 1M)으로 비용을 억제하고, Pro는 Opus($5/$25 per 1M, Sonnet의 ~1.67배)로 추론 깊이를 확보. 플랜=모델 매핑을 서비스 레이어에 가두면 UI·프롬프트가 영향받지 않는다.
+**트레이드오프**: Free도 분석마다 Sonnet을 호출하므로 Free LLM 비용이 0이 아니다 → Free 월 5회 상한(ADR-006)이 방어. 두 모델 모두 어댑티브 씽킹 사용(마지막 assistant 프리필 금지), Opus는 `budget_tokens`·`temperature`도 사용 불가(400).
 
 ### ADR-004: 컬럼 매핑은 AI, 거래 분류는 규칙 기반 + 배치 (LLM 비용 통제)
 **결정**: 카드사별 포맷을 하드코딩하지 않고 헤더+샘플 ≤20행을 Claude에 보내 컬럼(날짜/가맹점/금액/카테고리)을 추론시키고, 사용자 확인·수정 UI를 둔다. **CSV 전체 행은 LLM에 넣지 않는다** — 실제 거래 분류는 규칙 기반 + (필요시 소량) 배치. LLM 호출은 기본 경로 3회 이하로 상한.

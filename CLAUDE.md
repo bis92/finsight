@@ -7,7 +7,7 @@ CSV(은행 거래내역 · 카드 명세서)를 업로드하면 LLM이 분석해
 - TypeScript (strict mode)
 - Tailwind CSS
 - Supabase — Auth · Postgres · Storage
-- Claude API (`@anthropic-ai/sdk`) — CSV 컬럼 자동매핑 + 심화 인사이트
+- Claude API (`@anthropic-ai/sdk`) — CSV 컬럼 자동매핑 + 분석. 플랜별 모델: 컬럼 매핑·Free 분석=Sonnet 4.6(`claude-sonnet-4-6`), Pro 지출 진단 리포트=Opus 4.8(`claude-opus-4-8`)
 - Polar — 구독 결제 (Merchant of Record)
 - Vitest — 테스트
 - 배포: Vercel

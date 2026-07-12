@@ -51,11 +51,13 @@ interface TransactionsRepository {
   reclassify(userId: string, txnId: string, category: Category): Promise<Transaction>
 }
 interface LlmService {
-  mapColumns(input: ColumnMappingInput): Promise<ColumnMappingResult>          // 헤더+샘플 ≤20행만
-  generateInsights(agg: AggregateSnapshot): Promise<Insight[]>                 // Pro (지출 진단 리포트)
-  detectSubscriptions(txns: Transaction[]): Promise<SubscriptionCandidate[]>   // Pro (규칙 우선, LLM 보조)
+  mapColumns(input: ColumnMappingInput): Promise<ColumnMappingResult>          // Sonnet 4.6 (헤더+샘플 ≤20행만)
+  generateInsights(agg: AggregateSnapshot, plan: Plan): Promise<Insight[]>     // Free=Sonnet 4.6 기본 분석 / Pro=Opus 4.8 심화 진단
+  detectSubscriptions(txns: Transaction[]): Promise<SubscriptionCandidate[]>   // Pro, Opus 4.8 (규칙 우선, LLM 보조)
 }
 ```
+
+- `LlmService` 구현은 플랜에 따라 모델을 고른다 — 컬럼 매핑·Free 분석은 `claude-sonnet-4-6`, Pro 심화 진단 리포트는 `claude-opus-4-8`(ADR-003). 모델 선택은 서비스 내부에 숨겨 UI·queries는 불변.
 
 - uploads·profiles 접근은 formal interface 없이 단순 함수(`services/`). mock/real 반환 타입은 **완전히 동일**, mock은 결정적 값 반환.
 - `ColumnMappingInput`: `{ headers: string[]; sampleRows: string[][]; locale: 'ko-KR' }`. `sampleRows`는 데이터 행 최대 20개, 헤더 중복 미포함.
