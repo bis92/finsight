@@ -29,7 +29,10 @@
     {
       "step": 3,
       "name": "lib-analysis",
-      "status": "pending"
+      "status": "completed",
+      "started_at": "2026-07-13T23:40:20+0900",
+      "summary": "classify/classifyMany 키워드 분류, aggregate 지출·수입·카테고리·상위 가맹점 집계, detectSubscriptions 금액 유사도·주기·confidence 기반 후보 탐지를 구현",
+      "completed_at": "2026-07-13T23:43:35+0900"
     },
     {
       "step": 4,
