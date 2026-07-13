@@ -24,7 +24,7 @@
       "status": "completed",
       "started_at": "2026-07-13T23:36:57+0900",
       "summary": "detectEncoding·decodeCsv·parseCsv·buildMappingInput·applyMapping 순수 함수와 UTF-8/EUC-KR, 샘플 20행 상한, 날짜·부호 없는 금액/direction 정규화를 구현",
-      "completed_at": "2026-07-13T23:39:45+0900"
+      "completed_at": "2026-07-13T23:40:20+0900"
     },
     {
       "step": 3,
