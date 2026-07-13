@@ -1,0 +1,48 @@
+:root {
+  /* Type scale — size / weight / line-height / letter-spacing.
+     Display uses negative tracking; body stays at 0. Numbers use mono. */
+
+  /* Display — CoinbaseDisplay, weight 400 always */
+  --type-display-mega-size: 80px;   --type-display-mega-lh: 1.0;  --type-display-mega-ls: -2px;
+  --type-display-xl-size: 64px;     --type-display-xl-lh: 1.0;    --type-display-xl-ls: -1.6px;
+  --type-display-lg-size: 52px;     --type-display-lg-lh: 1.0;    --type-display-lg-ls: -1.3px;
+  --type-display-md-size: 44px;     --type-display-md-lh: 1.09;   --type-display-md-ls: -1px;
+  --type-display-sm-size: 36px;     --type-display-sm-lh: 1.11;   --type-display-sm-ls: -0.5px;
+
+  /* Titles */
+  --type-title-lg-size: 32px;   --type-title-lg-lh: 1.13; --type-title-lg-ls: -0.4px; --type-title-lg-weight: 400;
+  --type-title-md-size: 18px;   --type-title-md-lh: 1.33; --type-title-md-weight: 600;
+  --type-title-sm-size: 16px;   --type-title-sm-lh: 1.25; --type-title-sm-weight: 600;
+
+  /* Body */
+  --type-body-md-size: 16px;      --type-body-md-lh: 1.5; --type-body-md-weight: 400;
+  --type-body-strong-size: 16px;  --type-body-strong-lh: 1.5; --type-body-strong-weight: 700;
+  --type-body-sm-size: 14px;      --type-body-sm-lh: 1.5;
+  --type-caption-size: 13px;      --type-caption-lh: 1.5;
+  --type-caption-strong-size: 12px; --type-caption-strong-lh: 1.5; --type-caption-strong-weight: 600;
+
+  /* Numbers — CoinbaseMono */
+  --type-number-display-size: 18px; --type-number-display-lh: 1.4; --type-number-display-weight: 500;
+
+  /* Interactive */
+  --type-button-size: 16px;   --type-button-weight: 600; --type-button-lh: 1.15;
+  --type-nav-link-size: 14px; --type-nav-link-weight: 500; --type-nav-link-lh: 1.4;
+
+  --display-weight: 400;
+}
+
+/* Reusable type classes — apply the whole token in one shot */
+.type-display-mega { font-family: var(--font-display); font-size: var(--type-display-mega-size); font-weight: var(--display-weight); line-height: var(--type-display-mega-lh); letter-spacing: var(--type-display-mega-ls); }
+.type-display-xl { font-family: var(--font-display); font-size: var(--type-display-xl-size); font-weight: var(--display-weight); line-height: var(--type-display-xl-lh); letter-spacing: var(--type-display-xl-ls); }
+.type-display-lg { font-family: var(--font-display); font-size: var(--type-display-lg-size); font-weight: var(--display-weight); line-height: var(--type-display-lg-lh); letter-spacing: var(--type-display-lg-ls); }
+.type-display-md { font-family: var(--font-display); font-size: var(--type-display-md-size); font-weight: var(--display-weight); line-height: var(--type-display-md-lh); letter-spacing: var(--type-display-md-ls); }
+.type-display-sm { font-family: var(--font-sans); font-size: var(--type-display-sm-size); font-weight: var(--display-weight); line-height: var(--type-display-sm-lh); letter-spacing: var(--type-display-sm-ls); }
+.type-title-lg { font-family: var(--font-sans); font-size: var(--type-title-lg-size); font-weight: var(--type-title-lg-weight); line-height: var(--type-title-lg-lh); letter-spacing: var(--type-title-lg-ls); }
+.type-title-md { font-family: var(--font-sans); font-size: var(--type-title-md-size); font-weight: var(--type-title-md-weight); line-height: var(--type-title-md-lh); }
+.type-title-sm { font-family: var(--font-sans); font-size: var(--type-title-sm-size); font-weight: var(--type-title-sm-weight); line-height: var(--type-title-sm-lh); }
+.type-body-md { font-family: var(--font-sans); font-size: var(--type-body-md-size); font-weight: var(--type-body-md-weight); line-height: var(--type-body-md-lh); }
+.type-body-strong { font-family: var(--font-sans); font-size: var(--type-body-strong-size); font-weight: var(--type-body-strong-weight); line-height: var(--type-body-strong-lh); }
+.type-body-sm { font-family: var(--font-sans); font-size: var(--type-body-sm-size); line-height: var(--type-body-sm-lh); }
+.type-caption { font-family: var(--font-sans); font-size: var(--type-caption-size); line-height: var(--type-caption-lh); }
+.type-caption-strong { font-family: var(--font-sans); font-size: var(--type-caption-strong-size); font-weight: var(--type-caption-strong-weight); line-height: var(--type-caption-strong-lh); }
+.type-number-display { font-family: var(--font-mono); font-size: var(--type-number-display-size); font-weight: var(--type-number-display-weight); line-height: var(--type-number-display-lh); }

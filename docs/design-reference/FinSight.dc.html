@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/finsight-design-system-47d55efa-4485-428a-aaee-dce99da49348/tokens/fonts.css">
+<link rel="stylesheet" href="_ds/finsight-design-system-47d55efa-4485-428a-aaee-dce99da49348/tokens/colors.css">
+<link rel="stylesheet" href="_ds/finsight-design-system-47d55efa-4485-428a-aaee-dce99da49348/tokens/typography.css">
+<link rel="stylesheet" href="_ds/finsight-design-system-47d55efa-4485-428a-aaee-dce99da49348/tokens/spacing.css">
+<link rel="stylesheet" href="_ds/finsight-design-system-47d55efa-4485-428a-aaee-dce99da49348/tokens/radius.css">
+<link rel="stylesheet" href="_ds/finsight-design-system-47d55efa-4485-428a-aaee-dce99da49348/tokens/elevation.css">
+<link rel="stylesheet" href="_ds/finsight-design-system-47d55efa-4485-428a-aaee-dce99da49348/styles.css">
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--color-surface-soft);color:var(--color-ink);font-family:var(--font-sans);-webkit-font-smoothing:antialiased}
+  a{color:var(--color-primary);text-decoration:none}
+  a:hover{color:var(--color-primary-active)}
+  button{font-family:var(--font-sans)}
+  .mono{font-family:var(--font-mono);font-weight:500;font-variant-numeric:tabular-nums}
+  .fs-hover-lift{transition:box-shadow 150ms ease,transform 150ms ease}
+  .fs-hover-lift:hover{box-shadow:var(--shadow-soft)}
+  .fs-row:hover{background:var(--color-surface-soft)}
+  .fs-chip{transition:background 120ms ease,color 120ms ease}
+  input:focus,select:focus{outline:none}
+  @keyframes fs-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @keyframes fs-slide{from{transform:translateX(100%)}to{transform:translateX(0)}}
+  @keyframes fs-spin{to{transform:rotate(360deg)}}
+  .fs-screen{animation:fs-fade .28s ease both}
+</style>
+</helmet>
+
+<div style="min-height:100vh">
+
+<!-- ============ TOP APP BAR (product screens) ============ -->
+<sc-if value="{{ showAppBar }}" hint-placeholder-val="{{ true }}">
+<div style="height:60px;display:flex;align-items:center;gap:28px;padding:0 28px;background:var(--color-canvas);border-bottom:1px solid var(--color-hairline);position:sticky;top:0;z-index:30">
+  <span onClick="{{ goLanding }}" style="font-family:var(--font-display);font-weight:600;font-size:20px;letter-spacing:-0.5px;color:var(--color-primary);cursor:pointer">finsight</span>
+  <div style="display:flex;gap:6px">
+    <span onClick="{{ goDash }}" style="{{ navDashStyle }}">대시보드</span>
+    <span onClick="{{ goPro }}" style="{{ navProStyle }}">Pro 리포트</span>
+  </div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:14px">
+    <span class="mono" style="{{ planPillStyle }}">{{ planLabel }}</span>
+    <button onClick="{{ goUpload }}" style="height:38px;padding:0 16px;border-radius:var(--radius-pill);border:1px solid var(--color-hairline);background:var(--color-canvas);color:var(--color-ink);font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7-7 7 7"/></svg>업로드
+    </button>
+    <sc-if value="{{ isGuest }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ goAuth }}" style="height:38px;padding:0 16px;border-radius:var(--radius-pill);border:none;background:var(--color-primary);color:#fff;font-size:14px;font-weight:600;cursor:pointer">가입하기</button>
+    </sc-if>
+    <sc-if value="{{ isMember }}" hint-placeholder-val="{{ false }}">
+      <div style="width:34px;height:34px;border-radius:var(--radius-full);background:var(--color-surface-strong);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:13px;color:var(--color-ink)">Y</div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ LANDING ============ -->
+<sc-if value="{{ scLanding }}" hint-placeholder-val="{{ true }}">
+<div class="fs-screen">
+  <div style="height:64px;display:flex;align-items:center;gap:32px;padding:0 28px;background:var(--color-surface-dark)">
+    <span style="font-family:var(--font-display);font-weight:600;font-size:22px;letter-spacing:-0.5px;color:var(--color-primary)">finsight</span>
+    <div style="display:flex;gap:24px;margin-right:auto">
+      <span style="font-size:14px;color:var(--color-on-dark);opacity:.85">기능</span>
+      <span style="font-size:14px;color:var(--color-on-dark);opacity:.85">요금제</span>
+      <span style="font-size:14px;color:var(--color-on-dark);opacity:.85">보안</span>
+    </div>
+    <span onClick="{{ goAuth }}" style="font-size:14px;color:var(--color-on-dark);cursor:pointer">로그인</span>
+    <button onClick="{{ goAuth }}" style="height:40px;padding:0 18px;border-radius:var(--radius-pill);border:none;background:var(--color-primary);color:#fff;font-weight:600;font-size:15px;cursor:pointer">시작하기</button>
+  </div>
+
+  <!-- dark hero -->
+  <section style="background:var(--color-surface-dark);color:var(--color-on-dark);padding:88px 28px 96px">
+    <div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center">
+      <div>
+        <span style="display:inline-flex;padding:6px 12px;border-radius:var(--radius-pill);background:rgba(255,255,255,.08);color:var(--color-on-dark);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase">엑셀 수작업 없이</span>
+        <h1 style="margin:20px 0 0;font-family:var(--font-display);font-weight:400;font-size:64px;line-height:1.02;letter-spacing:-1.6px">내 돈이 어디로<br>갔는지, 3분 안에.</h1>
+        <p style="margin:24px 0 0;max-width:40ch;font-size:17px;line-height:1.55;color:var(--color-on-dark-soft)">카드·은행 CSV를 올리면 Claude가 컬럼을 자동 인식해 정규화하고, 소비 대시보드를 만들어 드립니다. 신한·삼성·현대 어떤 명세서든 그대로.</p>
+        <div style="display:flex;gap:12px;margin-top:34px">
+          <button onClick="{{ goAuth }}" style="height:56px;padding:0 30px;border-radius:var(--radius-pill);border:none;background:var(--color-primary);color:#fff;font-weight:600;font-size:16px;cursor:pointer">내 파일로 시작하기</button>
+          <button onClick="{{ tryGuest }}" style="height:56px;padding:0 30px;border-radius:var(--radius-pill);border:1px solid rgba(255,255,255,.4);background:transparent;color:var(--color-on-dark);font-weight:600;font-size:16px;cursor:pointer">샘플로 먼저 보기</button>
+        </div>
+        <div style="margin-top:22px;font-size:13px;color:var(--color-on-dark-soft)">가입 없이 샘플 데이터로 대시보드를 바로 체험할 수 있어요.</div>
+      </div>
+      <!-- floating product mockup -->
+      <div style="position:relative;height:400px">
+        <div style="position:absolute;right:0;top:14px;width:340px;background:var(--color-surface-dark-elevated);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-xl);box-shadow:0 24px 60px rgba(0,0,0,.45);padding:24px">
+          <div style="font-size:13px;color:var(--color-on-dark-soft)">이번 달 총지출 · 2026년 6월</div>
+          <div class="mono" style="font-size:34px;margin-top:6px">₩1,110,940</div>
+          <div style="height:1px;background:rgba(255,255,255,.08);margin:18px 0"></div>
+          <sc-for list="{{ heroBars }}" as="b" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <span style="width:52px;font-size:12px;color:var(--color-on-dark-soft)">{{ b.name }}</span>
+              <div style="flex:1;height:8px;border-radius:var(--radius-pill);background:rgba(255,255,255,.06);overflow:hidden"><div style="{{ b.barStyle }}"></div></div>
+              <span class="mono" style="font-size:12px;width:78px;text-align:right;color:var(--color-on-dark)">{{ b.amtStr }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="position:absolute;left:0;bottom:0;width:250px;background:var(--color-surface-dark-elevated);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-xl);box-shadow:0 24px 60px rgba(0,0,0,.45);padding:20px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--color-primary);font-weight:600">Opus 4.8 · 지출 진단</div>
+          <div style="margin-top:10px;font-size:13px;line-height:1.5;color:var(--color-on-dark)">정기구독으로 추정되는 <span class="mono">5</span>건이 매월 약 <span class="mono">₩147,190</span> 빠져나가고 있어요.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- feature band -->
+  <section style="background:var(--color-canvas);padding:88px 28px">
+    <div style="max-width:1200px;margin:0 auto">
+      <h2 style="margin:0 0 8px;font-family:var(--font-display);font-weight:400;font-size:40px;letter-spacing:-1px">계좌마다 흩어진 지출을, 하나의 뷰로.</h2>
+      <p style="margin:0 0 40px;font-size:16px;color:var(--color-body)">국내 카드사 명세서를 하드코딩 없이 흡수합니다.</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+        <div class="fs-hover-lift" style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:32px">
+          <div style="width:44px;height:44px;border-radius:var(--radius-full);background:var(--color-surface-strong);display:flex;align-items:center;justify-content:center;margin-bottom:18px;color:var(--color-primary)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg></div>
+          <div style="font-size:18px;font-weight:600;margin-bottom:8px">컬럼 자동 매핑</div>
+          <div style="font-size:15px;line-height:1.55;color:var(--color-body)">인코딩 감지 후 Claude가 헤더+샘플 20행만 읽어 표준 스키마로 정규화합니다. 카드사별 형식을 하드코딩 없이 흡수해요.</div>
+        </div>
+        <div class="fs-hover-lift" style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:32px">
+          <div style="width:44px;height:44px;border-radius:var(--radius-full);background:var(--color-surface-strong);display:flex;align-items:center;justify-content:center;margin-bottom:18px;color:var(--color-primary)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 9l-5 5-3-3-4 4"/></svg></div>
+          <div style="font-size:18px;font-weight:600;margin-bottom:8px">통합 소비 대시보드</div>
+          <div style="font-size:15px;line-height:1.55;color:var(--color-body)">여러 카드·계좌를 하나의 뷰로. 카테고리·상위 가맹점·순지출을 파이·바 차트로 즉시 확인합니다.</div>
+        </div>
+        <div class="fs-hover-lift" style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:32px">
+          <div style="width:44px;height:44px;border-radius:var(--radius-full);background:var(--color-surface-strong);display:flex;align-items:center;justify-content:center;margin-bottom:18px;color:var(--color-primary)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/><path d="M12 8v4l3 2"/></svg></div>
+          <div style="font-size:18px;font-weight:600;margin-bottom:8px">Pro 지출 진단</div>
+          <div style="font-size:15px;line-height:1.55;color:var(--color-body)">Opus 4.8이 집계를 근거로 서술형 진단·절감 제안·정기구독 후보를 구조화해 알려줍니다.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- pricing band -->
+  <section style="background:var(--color-surface-soft);padding:88px 28px">
+    <div style="max-width:920px;margin:0 auto;text-align:center">
+      <span style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-muted)">요금제</span>
+      <h2 style="margin:12px 0 6px;font-family:var(--font-display);font-weight:400;font-size:40px;letter-spacing:-1px">내가 뭘 썼나 → 그래서 뭘 해야 하나</h2>
+      <p style="margin:0 0 40px;font-size:16px;color:var(--color-body)">기능 깊이로 나뉩니다. 대시보드는 무료로 전부 제공됩니다.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;text-align:left">
+        <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:32px;display:flex;flex-direction:column;gap:20px">
+          <div style="font-size:18px;font-weight:600">Free</div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-family:var(--font-display);font-weight:400;font-size:36px;letter-spacing:-.5px">₩0</span></div>
+          <div style="display:flex;flex-direction:column;gap:12px;flex:1">
+            <sc-for list="{{ freeFeatures }}" as="x" hint-placeholder-count="4"><div style="display:flex;gap:10px;font-size:15px;color:var(--color-body)"><span style="color:var(--color-primary);font-weight:700">✓</span>{{ x }}</div></sc-for>
+          </div>
+          <button onClick="{{ tryGuest }}" style="height:44px;border-radius:var(--radius-pill);border:1px solid var(--color-hairline);background:var(--color-surface-strong);color:var(--color-ink);font-weight:600;font-size:15px;cursor:pointer">샘플로 체험</button>
+        </div>
+        <div style="background:var(--color-surface-dark);color:var(--color-on-dark);border-radius:var(--radius-xl);padding:32px;display:flex;flex-direction:column;gap:20px">
+          <div style="font-size:18px;font-weight:600;display:flex;align-items:center;gap:10px">Pro <span class="mono" style="font-size:11px;padding:3px 8px;border-radius:var(--radius-pill);background:var(--color-primary);color:#fff">OPUS 4.8</span></div>
+          <div style="display:flex;align-items:baseline;gap:6px"><span style="font-family:var(--font-display);font-weight:400;font-size:36px;letter-spacing:-.5px">₩9,900</span><span style="font-size:14px;color:var(--color-on-dark-soft)">/월</span></div>
+          <div style="display:flex;flex-direction:column;gap:12px;flex:1">
+            <sc-for list="{{ proFeatures }}" as="x" hint-placeholder-count="4"><div style="display:flex;gap:10px;font-size:15px;color:var(--color-on-dark)"><span style="color:var(--color-primary);font-weight:700">✓</span>{{ x }}</div></sc-for>
+          </div>
+          <button onClick="{{ goAuth }}" style="height:44px;border-radius:var(--radius-pill);border:none;background:var(--color-primary);color:#fff;font-weight:600;font-size:15px;cursor:pointer">Pro 시작하기</button>
+        </div>
+      </div>
+      <p style="margin:24px 0 0;font-size:13px;color:var(--color-muted)">원본 거래는 암호화되어 비공개로 저장되며, 언제든 완전 삭제할 수 있습니다.</p>
+    </div>
+  </section>
+
+  <footer style="background:var(--color-canvas);padding:48px 28px;border-top:1px solid var(--color-hairline)">
+    <div style="max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+      <span style="font-family:var(--font-display);font-weight:600;font-size:18px;color:var(--color-primary)">finsight</span>
+      <span style="font-size:13px;color:var(--color-muted)">© 2026 finsight · 데모 브랜드 · 원화(₩) · KST</span>
+    </div>
+  </footer>
+</div>
+</sc-if>
+
+<!-- ============ AUTH ============ -->
+<sc-if value="{{ scAuth }}" hint-placeholder-val="{{ false }}">
+<div class="fs-screen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px;background:var(--color-surface-soft)">
+  <div style="width:400px;background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:40px;text-align:center">
+    <span onClick="{{ goLanding }}" style="font-family:var(--font-display);font-weight:600;font-size:24px;letter-spacing:-.5px;color:var(--color-primary);cursor:pointer">finsight</span>
+    <h2 style="margin:22px 0 6px;font-family:var(--font-display);font-weight:400;font-size:26px;letter-spacing:-.5px">3초 만에 시작하기</h2>
+    <p style="margin:0 0 28px;font-size:14px;color:var(--color-body)">비밀번호 없이 소셜 계정으로 로그인합니다.</p>
+    <button onClick="{{ signInKakao }}" style="width:100%;height:50px;border-radius:var(--radius-md);border:none;background:#FEE500;color:#191600;font-weight:600;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="#191600"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.9 5.3 4.7 6.7-.2.7-.8 2.6-.9 3-.1.5.2.5.4.4.2-.1 2.6-1.8 3.7-2.5.7.1 1.4.2 2.1.2 5.5 0 10-3.6 10-8S17.5 3 12 3z"/></svg>
+      카카오로 계속하기
+    </button>
+    <button onClick="{{ signInGoogle }}" style="width:100%;height:50px;border-radius:var(--radius-md);border:1px solid var(--color-hairline);background:var(--color-canvas);color:var(--color-ink);font-weight:600;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px">
+      <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.5 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.9c-.3 1.4-1 2.5-2.2 3.3v2.8h3.6c2.1-1.9 3.2-4.8 3.2-7.9z"/><path fill="#34A853" d="M12 23c2.9 0 5.4-1 7.2-2.6l-3.6-2.8c-1 .7-2.3 1.1-3.6 1.1-2.8 0-5.1-1.9-6-4.4H2.3v2.9C4.1 20.6 7.8 23 12 23z"/><path fill="#FBBC05" d="M6 14.3c-.2-.7-.4-1.4-.4-2.3s.1-1.6.4-2.3V6.8H2.3C1.5 8.4 1 10.1 1 12s.5 3.6 1.3 5.2L6 14.3z"/><path fill="#EA4335" d="M12 5.4c1.6 0 3 .5 4.1 1.6l3.1-3.1C17.4 2.1 14.9 1 12 1 7.8 1 4.1 3.4 2.3 6.8L6 9.7c.9-2.5 3.2-4.3 6-4.3z"/></svg>
+      Google로 계속하기
+    </button>
+    <p style="margin:24px 0 0;font-size:12px;color:var(--color-muted);line-height:1.5">계속하면 서비스 약관 및 개인정보 처리방침에 동의하게 됩니다. 금융 데이터는 RLS·암호화로 보호됩니다.</p>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ UPLOAD ============ -->
+<sc-if value="{{ scUpload }}" hint-placeholder-val="{{ false }}">
+<div class="fs-screen" style="max-width:720px;margin:0 auto;padding:48px 28px">
+  <div style="font-size:13px;color:var(--color-muted);margin-bottom:8px">1 / 2 단계 · CSV 업로드</div>
+  <h1 style="margin:0 0 8px;font-family:var(--font-display);font-weight:400;font-size:34px;letter-spacing:-.8px">명세서 CSV를 올려주세요</h1>
+  <p style="margin:0 0 28px;font-size:15px;color:var(--color-body)">신한·삼성·현대·국민 등 카드사에서 내려받은 CSV 그대로 괜찮아요. 단일 파일 업로드 · 여러 달 포함 가능.</p>
+
+  <sc-if value="{{ uploadIdle }}" hint-placeholder-val="{{ true }}">
+    <div onClick="{{ loadSample }}" style="border:2px dashed var(--color-hairline);border-radius:var(--radius-xl);padding:52px 32px;text-align:center;cursor:pointer;background:var(--color-canvas)" class="fs-hover-lift">
+      <div style="width:52px;height:52px;border-radius:var(--radius-full);background:var(--color-surface-strong);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:var(--color-primary)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg></div>
+      <div style="font-size:16px;font-weight:600">파일을 끌어다 놓거나 클릭해서 선택</div>
+      <div style="font-size:13px;color:var(--color-muted);margin-top:6px">.csv · 최대 10MB · 인코딩 자동 감지 (UTF-8 / EUC-KR)</div>
+      <div style="margin-top:18px;display:inline-flex;height:40px;align-items:center;padding:0 18px;border-radius:var(--radius-pill);background:var(--color-primary);color:#fff;font-weight:600;font-size:14px">샘플 CSV로 체험하기</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ uploadParsing }}" hint-placeholder-val="{{ false }}">
+    <div style="border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:40px;text-align:center;background:var(--color-canvas)">
+      <div style="width:34px;height:34px;border:3px solid var(--color-surface-strong);border-top-color:var(--color-primary);border-radius:var(--radius-full);margin:0 auto 16px;animation:fs-spin .8s linear infinite"></div>
+      <div style="font-size:15px;font-weight:600">인코딩 감지 및 파싱 중…</div>
+      <div style="font-size:13px;color:var(--color-muted);margin-top:6px">shinhan_card_2026-06.csv</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ uploadParsed }}" hint-placeholder-val="{{ false }}">
+    <div style="border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:28px;background:var(--color-canvas)">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+        <div style="width:40px;height:40px;border-radius:var(--radius-sm);background:var(--color-surface-strong);display:flex;align-items:center;justify-content:center;color:var(--color-primary)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg></div>
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:600">shinhan_card_2026-06.csv</div>
+          <div style="font-size:13px;color:var(--color-muted)">파싱 완료</div>
+        </div>
+        <span style="color:var(--color-semantic-up);font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>성공</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+        <div style="background:var(--color-surface-soft);border-radius:var(--radius-md);padding:14px"><div style="font-size:12px;color:var(--color-muted)">감지된 인코딩</div><div style="font-size:15px;font-weight:600;margin-top:4px">EUC-KR</div></div>
+        <div style="background:var(--color-surface-soft);border-radius:var(--radius-md);padding:14px"><div style="font-size:12px;color:var(--color-muted)">거래 행</div><div class="mono" style="font-size:15px;margin-top:4px">35행</div></div>
+        <div style="background:var(--color-surface-soft);border-radius:var(--radius-md);padding:14px"><div style="font-size:12px;color:var(--color-muted)">컬럼</div><div class="mono" style="font-size:15px;margin-top:4px">7개</div></div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:24px">
+        <button onClick="{{ goMapping }}" style="flex:1;height:48px;border-radius:var(--radius-pill);border:none;background:var(--color-primary);color:#fff;font-weight:600;font-size:15px;cursor:pointer">컬럼 확인하기 →</button>
+        <button onClick="{{ resetUpload }}" style="height:48px;padding:0 20px;border-radius:var(--radius-pill);border:1px solid var(--color-hairline);background:var(--color-canvas);color:var(--color-body);font-weight:600;font-size:14px;cursor:pointer">다른 파일</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<!-- ============ MAPPING ============ -->
+<sc-if value="{{ scMapping }}" hint-placeholder-val="{{ false }}">
+<div class="fs-screen" style="max-width:820px;margin:0 auto;padding:48px 28px">
+  <div style="font-size:13px;color:var(--color-muted);margin-bottom:8px">2 / 2 단계 · 컬럼 매핑 확인</div>
+  <h1 style="margin:0 0 8px;font-family:var(--font-display);font-weight:400;font-size:34px;letter-spacing:-.8px">컬럼이 맞는지 확인해 주세요</h1>
+  <p style="margin:0 0 20px;font-size:15px;color:var(--color-body)">Claude가 헤더와 샘플 20행을 읽어 표준 스키마로 매핑했어요. 신뢰도가 낮은 항목은 직접 바꿀 수 있습니다.</p>
+  <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:var(--color-surface-strong);border-radius:var(--radius-md);margin-bottom:20px;font-size:13px;color:var(--color-body)">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    비용 억제를 위해 원본 명세서 전체가 아닌 샘플 20행만 분석에 사용됐습니다.
+  </div>
+
+  <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);overflow:hidden">
+    <div style="display:grid;grid-template-columns:1.1fr 1.2fr 90px;gap:0;padding:14px 24px;background:var(--color-surface-soft);font-size:12px;font-weight:600;color:var(--color-muted);text-transform:uppercase;letter-spacing:.04em">
+      <span>원본 컬럼</span><span>표준 필드</span><span style="text-align:right">신뢰도</span>
+    </div>
+    <sc-for list="{{ mappingRows }}" as="r" hint-placeholder-count="7">
+      <div style="display:grid;grid-template-columns:1.1fr 1.2fr 90px;gap:0;padding:14px 24px;border-top:1px solid var(--color-hairline);align-items:center">
+        <span class="mono" style="font-size:13px;color:var(--color-body)">{{ r.src }}</span>
+        <span><span style="{{ r.fieldStyle }}">{{ r.field }}</span></span>
+        <span class="mono" style="text-align:right;font-size:13px;{{ r.confColor }}">{{ r.conf }}</span>
+      </div>
+    </sc-for>
+  </div>
+  <div style="display:flex;gap:12px;margin-top:24px">
+    <button onClick="{{ confirmMapping }}" style="height:48px;padding:0 28px;border-radius:var(--radius-pill);border:none;background:var(--color-primary);color:#fff;font-weight:600;font-size:15px;cursor:pointer">매핑 확인하고 대시보드 생성 →</button>
+    <button onClick="{{ goUpload }}" style="height:48px;padding:0 20px;border-radius:var(--radius-pill);border:1px solid var(--color-hairline);background:var(--color-canvas);color:var(--color-body);font-weight:600;font-size:14px;cursor:pointer">이전</button>
+  </div>
+</div>
+</sc-if>
+
+<!-- ============ DASHBOARD ============ -->
+<sc-if value="{{ scDashboard }}" hint-placeholder-val="{{ false }}">
+<div class="fs-screen" style="max-width:1200px;margin:0 auto;padding:28px">
+
+  <sc-if value="{{ isGuest }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;gap:14px;padding:14px 20px;background:var(--color-surface-dark);color:var(--color-on-dark);border-radius:var(--radius-lg);margin-bottom:24px">
+      <span class="mono" style="font-size:11px;padding:3px 8px;border-radius:var(--radius-pill);background:var(--color-primary);color:#fff">DEMO</span>
+      <span style="font-size:14px">게스트 데모 · 샘플 데이터를 읽기전용으로 보고 있어요.</span>
+      <button onClick="{{ goAuth }}" style="margin-left:auto;height:36px;padding:0 16px;border-radius:var(--radius-pill);border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;font-weight:600;font-size:13px;cursor:pointer">내 파일로 해보기</button>
+    </div>
+  </sc-if>
+
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap">
+    <div>
+      <div style="font-size:14px;color:var(--color-muted)">소비 대시보드 · 2026년 6월 · KST</div>
+      <h1 style="margin:6px 0 0;font-family:var(--font-display);font-weight:400;font-size:32px;letter-spacing:-.6px">이번 달 소비 요약</h1>
+    </div>
+    <div style="display:flex;gap:4px;padding:4px;background:var(--color-surface-strong);border-radius:var(--radius-pill)">
+      <span onClick="{{ setLayoutA }}" style="{{ tabAStyle }}">개요</span>
+      <span onClick="{{ setLayoutB }}" style="{{ tabBStyle }}">카테고리</span>
+      <span onClick="{{ setLayoutC }}" style="{{ tabCStyle }}">명세</span>
+    </div>
+  </div>
+
+  <!-- KPI ROW (shared) -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+    <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:22px">
+      <div style="font-size:13px;color:var(--color-muted)">총지출</div>
+      <div class="mono" style="font-size:28px;margin-top:8px">{{ kpiExp }}</div>
+      <div style="font-size:12px;color:var(--color-muted);margin-top:6px">이번 달 · 카드 4개</div>
+    </div>
+    <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:22px">
+      <div style="font-size:13px;color:var(--color-muted)">총수입</div>
+      <div class="mono" style="font-size:28px;margin-top:8px;color:var(--color-semantic-up)">{{ kpiInc }}</div>
+      <div style="font-size:12px;color:var(--color-muted);margin-top:6px">급여 입금</div>
+    </div>
+    <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:22px">
+      <div style="font-size:13px;color:var(--color-muted)">순수지 (수입 − 지출)</div>
+      <div class="mono" style="font-size:28px;margin-top:8px">{{ kpiNet }}</div>
+      <div style="font-size:12px;color:var(--color-muted);margin-top:6px">이번 달 잔여</div>
+    </div>
+    <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:22px">
+      <div style="font-size:13px;color:var(--color-muted)">거래 건수</div>
+      <div class="mono" style="font-size:28px;margin-top:8px">{{ kpiCount }}</div>
+      <div style="font-size:12px;color:var(--color-muted);margin-top:6px">지출 기준</div>
+    </div>
+  </div>
+
+  <!-- ===== LAYOUT A: 개요 ===== -->
+  <sc-if value="{{ layoutA }}" hint-placeholder-val="{{ true }}">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+      <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:28px">
+        <div style="font-size:16px;font-weight:600;margin-bottom:20px">카테고리 구성</div>
+        <div style="display:flex;align-items:center;gap:28px">
+          <div style="position:relative;width:180px;height:180px;flex:none">
+            <div>{{ donutImgA }}</div>
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:12px;color:var(--color-muted)">총지출</span><span class="mono" style="font-size:18px">{{ kpiExp }}</span></div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:11px">
+            <sc-for list="{{ catsTop }}" as="c" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="{{ c.dotStyle }}"></span>
+                <span style="flex:1;font-size:14px;white-space:nowrap">{{ c.name }}</span>
+                <span class="mono" style="font-size:13px;color:var(--color-muted)">{{ c.pctStr }}</span>
+                <span class="mono" style="font-size:13px;width:88px;text-align:right">{{ c.amtStr }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:28px">
+        <div style="font-size:16px;font-weight:600;margin-bottom:16px">상위 가맹점</div>
+        <div style="display:flex;flex-direction:column">
+          <sc-for list="{{ merchantsTop }}" as="m" hint-placeholder-count="6">
+            <div class="fs-row" style="display:flex;align-items:center;gap:12px;padding:9px 8px;border-radius:var(--radius-sm)">
+              <span style="width:32px;height:32px;border-radius:var(--radius-full);background:var(--color-surface-strong);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--color-ink)">{{ m.initial }}</span>
+              <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.name }}</div><div style="font-size:12px;color:var(--color-muted)">{{ m.count }}</div></div>
+              <span class="mono" style="font-size:14px">{{ m.amtStr }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:28px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-size:16px;font-weight:600">최근 거래</div><span style="font-size:13px;color:var(--color-primary);cursor:pointer" onClick="{{ setLayoutC }}">전체 명세 보기 →</span></div>
+      <sc-for list="{{ recentTx }}" as="t" hint-placeholder-count="8">
+        <div class="fs-row" onClick="{{ t.onOpen }}" style="display:flex;align-items:center;gap:14px;padding:11px 8px;border-top:1px solid var(--color-hairline-soft);cursor:pointer">
+          <span class="mono" style="font-size:13px;color:var(--color-muted);width:44px">{{ t.dateStr }}</span>
+          <span style="{{ t.dotStyle }}"></span>
+          <span style="flex:1;font-size:14px;font-weight:600">{{ t.merchant }}</span>
+          <span style="font-size:12px;color:var(--color-muted);width:110px">{{ t.catName }} · {{ t.card }}</span>
+          <span class="mono" style="font-size:14px;width:96px;text-align:right">{{ t.amtStr }}</span>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;padding:20px 24px;background:var(--color-surface-dark);color:var(--color-on-dark);border-radius:var(--radius-xl);margin-top:16px">
+      <div style="flex:1"><div style="font-size:16px;font-weight:600">그래서 뭘 바꿔야 할까요?</div><div style="font-size:14px;color:var(--color-on-dark-soft);margin-top:4px">Opus 4.8가 지출을 진단하고 절감 포인트·정기구독 후보를 찾아드려요.</div></div>
+      <button onClick="{{ goPro }}" style="height:44px;padding:0 22px;border-radius:var(--radius-pill);border:none;background:var(--color-primary);color:#fff;font-weight:600;font-size:15px;cursor:pointer">Pro 진단 리포트 보기</button>
+    </div>
+  </sc-if>
+
+  <!-- ===== LAYOUT B: 카테고리 ===== -->
+  <sc-if value="{{ layoutB }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:320px 1fr;gap:16px;margin-bottom:16px">
+      <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:28px;display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <div style="position:relative;width:220px;height:220px">
+          <div>{{ donutImgB }}</div>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:13px;color:var(--color-muted)">총지출</span><span class="mono" style="font-size:22px">{{ kpiExp }}</span></div>
+        </div>
+        <div style="font-size:13px;color:var(--color-muted);margin-top:16px;text-align:center">9개 카테고리 · 지출 기준</div>
+      </div>
+      <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:28px">
+        <div style="font-size:16px;font-weight:600;margin-bottom:18px">카테고리별 지출</div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <sc-for list="{{ catsAll }}" as="c" hint-placeholder-count="9">
+            <div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+                <span style="{{ c.dotStyle }}"></span>
+                <span style="flex:1;font-size:14px;font-weight:600">{{ c.name }}</span>
+                <span class="mono" style="font-size:13px;color:var(--color-muted)">{{ c.pctStr }}</span>
+                <span class="mono" style="font-size:14px;width:96px;text-align:right">{{ c.amtStr }}</span>
+              </div>
+              <div style="height:8px;border-radius:var(--radius-pill);background:var(--color-surface-strong);overflow:hidden"><div style="{{ c.barStyle }}"></div></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:28px">
+        <div style="font-size:16px;font-weight:600;margin-bottom:16px">상위 가맹점</div>
+        <sc-for list="{{ merchantsTop }}" as="m" hint-placeholder-count="6">
+          <div class="fs-row" style="display:flex;align-items:center;gap:12px;padding:9px 8px;border-radius:var(--radius-sm)">
+            <span style="width:30px;height:30px;border-radius:var(--radius-full);background:var(--color-surface-strong);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">{{ m.initial }}</span>
+            <span style="flex:1;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.name }}</span>
+            <span class="mono" style="font-size:14px">{{ m.amtStr }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:28px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px"><div style="font-size:16px;font-weight:600">정기구독 요약</div><span class="mono" style="font-size:13px;color:var(--color-muted)">월 {{ subTotalStr }}</span></div>
+        <sc-for list="{{ subs }}" as="s" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--color-hairline-soft)">
+            <span style="flex:1;font-size:14px;font-weight:600">{{ s.m }}</span>
+            <span style="font-size:12px;color:var(--color-muted)">{{ s.cadence }}</span>
+            <span class="mono" style="font-size:14px;width:76px;text-align:right">{{ s.amtStr }}</span>
+          </div>
+        </sc-for>
+        <div style="font-size:12px;color:var(--color-muted);margin-top:12px">단일 파일 기준 패턴 추정 · 확정 아님</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===== LAYOUT C: 명세 (ledger) ===== -->
+  <sc-if value="{{ layoutC }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:210px 1fr 240px;gap:16px">
+      <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:20px;height:fit-content">
+        <div style="font-size:13px;font-weight:600;color:var(--color-muted);margin-bottom:12px">카테고리 필터</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <span onClick="{{ clearFilter }}" style="{{ filterAllStyle }}">전체</span>
+          <sc-for list="{{ catsAll }}" as="c" hint-placeholder-count="9">
+            <span onClick="{{ c.onFilter }}" class="fs-chip" style="{{ c.filterStyle }}">
+              <span style="{{ c.dotStyle }}"></span><span style="flex:1">{{ c.name }}</span><span class="mono" style="font-size:12px;color:var(--color-muted)">{{ c.pctStr }}</span>
+            </span>
+          </sc-for>
+        </div>
+      </div>
+      <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--color-hairline)"><div style="font-size:16px;font-weight:600">{{ ledgerTitle }}</div><span class="mono" style="font-size:13px;color:var(--color-muted)">{{ ledgerCount }}건 · {{ ledgerSum }}</span></div>
+        <sc-for list="{{ ledgerTx }}" as="t" hint-placeholder-count="12">
+          <div class="fs-row" onClick="{{ t.onOpen }}" style="display:flex;align-items:center;gap:12px;padding:11px 24px;border-top:1px solid var(--color-hairline-soft);cursor:pointer">
+            <span class="mono" style="font-size:13px;color:var(--color-muted);width:42px">{{ t.dateStr }}</span>
+            <span style="{{ t.dotStyle }}"></span>
+            <span style="flex:1;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.merchant }}</span>
+            <span style="font-size:12px;color:var(--color-muted);width:72px">{{ t.catName }}</span>
+            <span style="font-size:12px;color:var(--color-muted);width:64px">{{ t.card }}</span>
+            <span class="mono" style="font-size:14px;width:92px;text-align:right;{{ t.amtColor }}">{{ t.amtStr }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:22px">
+          <div style="font-size:13px;color:var(--color-muted)">필터 합계</div>
+          <div class="mono" style="font-size:26px;margin-top:8px">{{ ledgerSum }}</div>
+        </div>
+        <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:22px">
+          <div style="font-size:14px;font-weight:600;margin-bottom:14px">상위 3 카테고리</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <sc-for list="{{ catsTop3 }}" as="c" hint-placeholder-count="3">
+              <div><div style="display:flex;gap:8px;margin-bottom:5px"><span style="flex:1;font-size:13px">{{ c.name }}</span><span class="mono" style="font-size:12px;color:var(--color-muted)">{{ c.pctStr }}</span></div><div style="height:6px;border-radius:var(--radius-pill);background:var(--color-surface-strong);overflow:hidden"><div style="{{ c.barStyle }}"></div></div></div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="background:var(--color-surface-dark);color:var(--color-on-dark);border-radius:var(--radius-xl);padding:22px">
+          <div style="font-size:14px;font-weight:600">정기구독 {{ subCount }}건 추정</div>
+          <div class="mono" style="font-size:20px;margin-top:6px">월 {{ subTotalStr }}</div>
+          <span onClick="{{ goPro }}" style="display:inline-block;margin-top:12px;font-size:13px;color:var(--color-primary);cursor:pointer">Pro에서 자세히 →</span>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<!-- ============ PRO REPORT ============ -->
+<sc-if value="{{ scPro }}" hint-placeholder-val="{{ false }}">
+<div class="fs-screen" style="max-width:1000px;margin:0 auto;padding:28px">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap">
+    <div>
+      <div style="display:flex;align-items:center;gap:10px"><span class="mono" style="font-size:11px;padding:3px 8px;border-radius:var(--radius-pill);background:var(--color-primary);color:#fff">OPUS 4.8</span><span style="font-size:14px;color:var(--color-muted)">지출 진단 리포트 · 2026년 6월</span></div>
+      <h1 style="margin:8px 0 0;font-family:var(--font-display);font-weight:400;font-size:32px;letter-spacing:-.6px">그래서, 뭘 바꿔야 할까요</h1>
+    </div>
+  </div>
+
+  <!-- PRO CONTENT -->
+  <sc-if value="{{ isPro }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:32px">
+        <div style="font-size:16px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/><path d="M12 8v4l3 2"/></svg>진단 요약</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{ diagnosis }}" as="p" hint-placeholder-count="4">
+            <p style="margin:0;font-size:15px;line-height:1.65;color:var(--color-body)">{{ p }}</p>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:32px">
+        <div style="font-size:16px;font-weight:600;margin-bottom:20px">카테고리 심층 · 고정비 vs 변동비</div>
+        <div style="display:flex;height:16px;border-radius:var(--radius-pill);overflow:hidden;margin-bottom:14px">
+          <div style="{{ fixedBarStyle }}"></div><div style="{{ varBarStyle }}"></div>
+        </div>
+        <div style="display:flex;gap:32px;margin-bottom:24px">
+          <div style="display:flex;align-items:center;gap:8px"><span style="width:12px;height:12px;border-radius:3px;background:#0a2a8f"></span><span style="font-size:14px">고정비 <span class="mono">{{ fixedStr }}</span> <span style="color:var(--color-muted)">· {{ fixedPct }}</span></span></div>
+          <div style="display:flex;align-items:center;gap:8px"><span style="width:12px;height:12px;border-radius:3px;background:#7aa1ff"></span><span style="font-size:14px">변동비 <span class="mono">{{ varStr }}</span> <span style="color:var(--color-muted)">· {{ varPct }}</span></span></div>
+        </div>
+        <div style="font-size:14px;line-height:1.6;color:var(--color-body)">고정비(주거·구독·공과금)는 단기간에 줄이기 어렵습니다. 이번 달 절감 여지는 대부분 변동비, 특히 <strong style="color:var(--color-ink)">쇼핑</strong>과 <strong style="color:var(--color-ink)">식비(배달 포함)</strong>에 있습니다.</div>
+      </div>
+
+      <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:32px">
+        <div style="font-size:16px;font-weight:600;margin-bottom:20px">절감 제안</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <sc-for list="{{ savings }}" as="s" hint-placeholder-count="3">
+            <div style="display:flex;gap:16px;align-items:flex-start;padding:16px;background:var(--color-surface-soft);border-radius:var(--radius-lg)">
+              <span style="width:30px;height:30px;flex:none;border-radius:var(--radius-full);background:var(--color-canvas);border:1px solid var(--color-hairline);display:flex;align-items:center;justify-content:center;color:var(--color-primary)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+              <div style="flex:1"><div style="font-size:15px;font-weight:600">{{ s.title }}</div><div style="font-size:14px;color:var(--color-body);margin-top:3px;line-height:1.5">{{ s.detail }}</div></div>
+              <span class="mono" style="font-size:14px;color:var(--color-semantic-up);white-space:nowrap">{{ s.save }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:32px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div style="font-size:16px;font-weight:600">정기구독 후보</div><span class="mono" style="font-size:13px;color:var(--color-muted)">월 합계 {{ subTotalStr }}</span></div>
+        <div style="font-size:13px;color:var(--color-muted);margin-bottom:16px">merchant + 금액 + 주기로 탐지한 반복 결제 후보입니다. 단일 파일 기준이라 <strong>확정이 아닌 추정</strong>입니다.</div>
+        <sc-for list="{{ subs }}" as="s" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:14px;padding:13px 0;border-top:1px solid var(--color-hairline-soft)">
+            <span style="width:34px;height:34px;border-radius:var(--radius-full);background:var(--color-surface-strong);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">{{ s.initial }}</span>
+            <div style="flex:1"><div style="font-size:14px;font-weight:600">{{ s.m }}</div><div style="font-size:12px;color:var(--color-muted)">{{ s.note }}</div></div>
+            <span style="font-size:12px;color:var(--color-muted)">{{ s.cadence }}</span>
+            <span class="mono" style="font-size:14px;width:76px;text-align:right">{{ s.amtStr }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:12px;color:var(--color-muted);text-align:center;padding:8px">이 리포트는 집계 결과를 근거로 Opus 4.8이 생성했습니다 · 투자·세무 자문이 아닙니다.</div>
+    </div>
+  </sc-if>
+
+  <!-- PAYWALL (free / guest) -->
+  <sc-if value="{{ proLocked }}" hint-placeholder-val="{{ true }}">
+    <div style="position:relative">
+      <div style="filter:blur(6px);opacity:.55;pointer-events:none;display:flex;flex-direction:column;gap:16px">
+        <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:32px"><div style="font-size:16px;font-weight:600;margin-bottom:14px">진단 요약</div><p style="margin:0 0 10px;font-size:15px;line-height:1.6;color:var(--color-body)">이번 달 총지출은 ₩1,110,940으로, 총수입의 약 35% 수준입니다. 지출의 62%가 세 카테고리에 집중돼 있습니다.</p><p style="margin:0;font-size:15px;line-height:1.6;color:var(--color-body)">반복 결제로 추정되는 정기구독 5건이 매월 약 ₩147,190 빠져나가고 있습니다.</p></div>
+        <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);padding:32px;height:120px"></div>
+      </div>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+        <div style="background:var(--color-canvas);border:1px solid var(--color-hairline);border-radius:var(--radius-xl);box-shadow:var(--shadow-soft);padding:36px;text-align:center;max-width:420px">
+          <div style="width:52px;height:52px;border-radius:var(--radius-full);background:var(--color-surface-strong);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;color:var(--color-primary)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>
+          <div style="font-size:20px;font-weight:600;font-family:var(--font-display)">Pro 진단 리포트</div>
+          <p style="margin:10px 0 22px;font-size:14px;line-height:1.55;color:var(--color-body)">Opus 4.8이 지출을 서술형으로 진단하고, 절감 제안과 정기구독 후보를 찾아드립니다.</p>
+          <sc-if value="{{ isGuest }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ goAuth }}" style="width:100%;height:48px;border-radius:var(--radius-pill);border:none;background:var(--color-primary);color:#fff;font-weight:600;font-size:15px;cursor:pointer">가입하고 Pro 체험</button>
+          </sc-if>
+          <sc-if value="{{ isMember }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ openUpgrade }}" style="width:100%;height:48px;border-radius:var(--radius-pill);border:none;background:var(--color-primary);color:#fff;font-weight:600;font-size:15px;cursor:pointer">Pro로 업그레이드 · ₩9,900/월</button>
+          </sc-if>
+          <div style="font-size:12px;color:var(--color-muted);margin-top:12px">대시보드·기본 분석은 계속 무료입니다.</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<!-- ============ SIDEVIEW DRAWER ============ -->
+<sc-if value="{{ showSideView }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeTx }}" style="position:fixed;inset:0;background:rgba(10,11,13,.28);z-index:50"></div>
+  <div style="position:fixed;top:0;right:0;bottom:0;width:380px;background:var(--color-canvas);z-index:51;box-shadow:-8px 0 30px rgba(0,0,0,.12);padding:28px;overflow-y:auto;animation:fs-slide .25s ease both">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+      <span style="font-size:13px;color:var(--color-muted)">거래 상세</span>
+      <span onClick="{{ closeTx }}" style="cursor:pointer;color:var(--color-muted);font-size:22px;line-height:1">×</span>
+    </div>
+    <div style="font-size:22px;font-weight:600">{{ svMerchant }}</div>
+    <div class="mono" style="font-size:32px;margin-top:10px">{{ svAmt }}</div>
+    <div style="display:flex;flex-direction:column;gap:2px;margin-top:24px">
+      <div style="display:flex;justify-content:space-between;padding:13px 0;border-top:1px solid var(--color-hairline-soft)"><span style="font-size:14px;color:var(--color-muted)">거래일</span><span class="mono" style="font-size:14px">{{ svDate }}</span></div>
+      <div style="display:flex;justify-content:space-between;padding:13px 0;border-top:1px solid var(--color-hairline-soft)"><span style="font-size:14px;color:var(--color-muted)">결제 카드</span><span style="font-size:14px;font-weight:600">{{ svCard }}</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-top:1px solid var(--color-hairline-soft)"><span style="font-size:14px;color:var(--color-muted)">카테고리</span><span style="display:flex;align-items:center;gap:8px"><span style="{{ svDotStyle }}"></span><span style="font-size:14px;font-weight:600">{{ svCat }}</span></span></div>
+    </div>
+    <button onClick="{{ openReclass }}" style="width:100%;height:44px;margin-top:24px;border-radius:var(--radius-pill);border:1px solid var(--color-hairline);background:var(--color-surface-strong);color:var(--color-ink);font-weight:600;font-size:14px;cursor:pointer">카테고리 재분류</button>
+    <div style="margin-top:20px"><div style="font-size:13px;color:var(--color-muted);margin-bottom:8px">메모</div><input placeholder="메모 추가…" style="width:100%;height:44px;padding:0 14px;border-radius:var(--radius-md);border:1px solid var(--color-hairline);font-size:14px"></div>
+  </div>
+</sc-if>
+
+<!-- ============ RECLASSIFY MODAL ============ -->
+<sc-if value="{{ showReclass }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeReclass }}" style="position:fixed;inset:0;background:rgba(10,11,13,.4);z-index:60;display:flex;align-items:center;justify-content:center;padding:20px">
+    <div onClick="{{ stop }}" style="width:420px;background:var(--color-canvas);border-radius:var(--radius-xl);padding:28px">
+      <div style="font-size:18px;font-weight:600;margin-bottom:4px">카테고리 재분류</div>
+      <div style="font-size:14px;color:var(--color-muted);margin-bottom:20px">{{ reclassMerchant }}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <sc-for list="{{ catOptions }}" as="o" hint-placeholder-count="9">
+          <span onClick="{{ o.onPick }}" class="fs-chip" style="{{ o.chipStyle }}"><span style="{{ o.dotStyle }}"></span>{{ o.name }}</span>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<!-- ============ UPGRADE MODAL ============ -->
+<sc-if value="{{ showUpgrade }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeUpgrade }}" style="position:fixed;inset:0;background:rgba(10,11,13,.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:20px">
+    <div onClick="{{ stop }}" style="width:440px;background:var(--color-canvas);border-radius:var(--radius-xl);padding:32px;text-align:center">
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px"><span style="font-family:var(--font-display);font-size:20px;color:var(--color-primary);font-weight:600">finsight</span><span class="mono" style="font-size:11px;padding:3px 8px;border-radius:var(--radius-pill);background:var(--color-primary);color:#fff">PRO</span></div>
+      <h2 style="margin:8px 0 4px;font-family:var(--font-display);font-weight:400;font-size:28px;letter-spacing:-.5px">Pro로 업그레이드</h2>
+      <div style="display:flex;align-items:baseline;justify-content:center;gap:4px;margin:12px 0 20px"><span class="mono" style="font-size:34px">₩9,900</span><span style="font-size:15px;color:var(--color-muted)">/월</span></div>
+      <div style="display:flex;flex-direction:column;gap:12px;text-align:left;margin-bottom:24px">
+        <sc-for list="{{ proFeatures }}" as="x" hint-placeholder-count="4"><div style="display:flex;gap:10px;font-size:14px;color:var(--color-body)"><span style="color:var(--color-primary);font-weight:700">✓</span>{{ x }}</div></sc-for>
+      </div>
+      <button onClick="{{ doUpgrade }}" style="width:100%;height:48px;border-radius:var(--radius-pill);border:none;background:var(--color-primary);color:#fff;font-weight:600;font-size:15px;cursor:pointer">Pro로 전환 (데모)</button>
+      <div style="font-size:12px;color:var(--color-muted);margin-top:12px">phase 0 · 실결제 연동은 준비 중입니다 (mock 게이팅)</div>
+      <span onClick="{{ closeUpgrade }}" style="display:inline-block;margin-top:14px;font-size:13px;color:var(--color-muted);cursor:pointer">나중에 하기</span>
+    </div>
+  </div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900},&quot;plan&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;free&quot;,&quot;pro&quot;],&quot;default&quot;:&quot;free&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;상태&quot;},&quot;defaultView&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;a&quot;,&quot;b&quot;,&quot;c&quot;],&quot;default&quot;:&quot;a&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;상태&quot;},&quot;startScreen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;landing&quot;,&quot;auth&quot;,&quot;upload&quot;,&quot;mapping&quot;,&quot;dashboard&quot;,&quot;pro&quot;],&quot;default&quot;:&quot;landing&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;상태&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const raw = [
+      ['01','배달의민족',23900,'식비','신한카드'],
+      ['01','스타벅스',5600,'카페/간식','삼성카드'],
+      ['02','GS25',8400,'식비','신한카드'],
+      ['02','카카오T',12300,'교통','현대카드'],
+      ['03','에이블짐 헬스장',99000,'구독','KB국민'],
+      ['03','이마트',64200,'식비','삼성카드'],
+      ['04','올리브영',38700,'쇼핑','현대카드'],
+      ['05','유튜브 프리미엄',14900,'구독','신한카드'],
+      ['05','김밥천국',7000,'식비','신한카드'],
+      ['06','투썸플레이스',6100,'카페/간식','삼성카드'],
+      ['07','CGV',28000,'문화/여가','현대카드'],
+      ['08','지하철(티머니)',1550,'교통','신한카드'],
+      ['08','배달의민족',19500,'식비','신한카드'],
+      ['09','무신사',89000,'쇼핑','삼성카드'],
+      ['10','스타벅스',5600,'카페/간식','삼성카드'],
+      ['11','GS칼텍스 주유',70000,'교통','현대카드'],
+      ['12','Microsoft 365',11900,'구독','KB국민'],
+      ['12','마켓컬리',42300,'식비','신한카드'],
+      ['13','연세이비인후과',6500,'의료','KB국민'],
+      ['13','온누리약국',8200,'의료','KB국민'],
+      ['14','맥도날드',9800,'식비','삼성카드'],
+      ['15','다이소',12400,'쇼핑','신한카드'],
+      ['16','CU',4300,'식비','신한카드'],
+      ['17','넷플릭스',13500,'구독','신한카드'],
+      ['18','교보문고',27000,'문화/여가','현대카드'],
+      ['19','배달의민족',26700,'식비','신한카드'],
+      ['20','스타벅스',11200,'카페/간식','삼성카드'],
+      ['21','SKT 통신비',55000,'공과금','KB국민'],
+      ['22','쿠팡 와우',7890,'구독','신한카드'],
+      ['22','쿠팡',118400,'쇼핑','신한카드'],
+      ['23','한전 전기요금',38600,'공과금','KB국민'],
+      ['24','아파트 관리비',210000,'주거','KB국민'],
+      ['25','급여 입금',3200000,'수입','—','income'],
+      ['26','노브랜드버거',8500,'식비','삼성카드'],
+      ['28','카카오페이지',5000,'문화/여가','현대카드'],
+    ];
+    this.state = {
+      screen: props.startScreen || 'landing',
+      plan: props.plan || 'free',
+      guest: false,
+      layout: props.defaultView || 'a',
+      selId: null, reclassId: null,
+      showUpgrade: false, mapped: false,
+      upload: 'idle', filterCat: null,
+      txns: raw.map((r, i) => ({ id: i, d: '2026-06-' + r[0], m: r[1], a: r[2], c: r[3], k: r[4], t: r[5] || 'expense' })),
+    };
+    this.CAT = { '식비':'#0052ff','쇼핑':'#0a2a8f','주거':'#2f6bff','구독':'#5185ff','공과금':'#7aa1ff','교통':'#9bb6ff','문화/여가':'#bcccff','카페/간식':'#d1ddff','의료':'#8aa6ff' };
+    this.subsRaw = [
+      { m:'넷플릭스', a:13500, cadence:'매월 17일경', note:'2개월 연속 동일 금액 결제 추정' },
+      { m:'유튜브 프리미엄', a:14900, cadence:'매월 5일경', note:'동일 가맹점·금액 반복 추정' },
+      { m:'쿠팡 와우', a:7890, cadence:'매월 22일경', note:'멤버십 정기결제 추정' },
+      { m:'에이블짐 헬스장', a:99000, cadence:'매월 3일경', note:'정기 결제 패턴 추정' },
+      { m:'Microsoft 365', a:11900, cadence:'매월 12일경', note:'연간 구독의 월 환산 추정' },
+    ];
+  }
+  won(n){ return '₩' + Math.round(n).toLocaleString('en-US'); }
+  dot(color,size){ return { width:(size||10)+'px', height:(size||10)+'px', borderRadius:'50%', background:color, flex:'none', display:'inline-block' }; }
+  expenses(){ return this.state.txns.filter(t => t.t === 'expense'); }
+  catList(){
+    const g = {}; this.expenses().forEach(t => { g[t.c] = (g[t.c]||0) + t.a; });
+    const total = Object.values(g).reduce((s,v)=>s+v,0) || 1;
+    return Object.keys(g).map(name => ({ name, amt:g[name] })).sort((a,b)=>b.amt-a.amt)
+      .map(c => ({ ...c, color:this.CAT[c.name]||'#9bb6ff', pct:c.amt/total, pctStr:Math.round(c.amt/total*100)+'%', amtStr:this.won(c.amt) }));
+  }
+  merchants(){
+    const g = {}; this.expenses().forEach(t => { if(!g[t.m]) g[t.m]={amt:0,n:0}; g[t.m].amt+=t.a; g[t.m].n++; });
+    return Object.keys(g).map(m => ({ name:m, amt:g[m].amt, count:g[m].n+'건', initial:m.slice(0,1), amtStr:this.won(g[m].amt) })).sort((a,b)=>b.amt-a.amt);
+  }
+  donutSrc(size, thick){
+    const cats = this.catList(); const total = cats.reduce((s,c)=>s+c.amt,0)||1;
+    const r=(size-thick)/2, cx=size/2, C=2*Math.PI*r; let acc=0;
+    let circ='';
+    cats.forEach(c=>{ const dash=c.amt/total*C; circ+='<circle cx="'+cx+'" cy="'+cx+'" r="'+r+'" fill="none" stroke="'+c.color+'" stroke-width="'+thick+'" stroke-dasharray="'+dash.toFixed(2)+' '+(C-dash).toFixed(2)+'" stroke-dashoffset="'+(-acc).toFixed(2)+'" transform="rotate(-90 '+cx+' '+cx+')"/>'; acc+=dash; });
+    const svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'">'+circ+'</svg>';
+    return 'data:image/svg+xml,'+encodeURIComponent(svg);
+  }
+  set(s){ this.setState(s); }
+  renderVals(){
+    const st = this.state;
+    const cats = this.catList();
+    const maxCat = cats.length ? cats[0].amt : 1;
+    const exp = this.expenses().reduce((s,t)=>s+t.a,0);
+    const inc = st.txns.filter(t=>t.t==='income').reduce((s,t)=>s+t.a,0);
+    const isPro = st.plan === 'pro';
+    const isGuest = st.guest;
+    const isMember = !isGuest && st.screen !== 'landing' && st.screen !== 'auth';
+    const barGrad = (c) => ({ width:Math.round(c.amt/maxCat*100)+'%', height:'100%', background:c.color, borderRadius:'100px' });
+    const mkCats = (arr) => arr.map(c => ({ ...c, dotStyle:this.dot(c.color), barStyle:barGrad(c) }));
+
+    // transactions view
+    const mkRow = (t) => ({
+      id:t.id, dateStr:t.d.slice(8), merchant:t.m, catName:t.c, card:t.k,
+      amtStr:(t.t==='income'?'+':'−')+this.won(t.a).slice(1)+'', dotStyle:this.dot(t.t==='income'?'#05b169':(this.CAT[t.c]||'#9bb6ff'),8),
+      amtColor: t.t==='income' ? 'color:var(--color-semantic-up)' : '',
+      onOpen: () => this.set({ selId:t.id }),
+    });
+    const sorted = [...st.txns].sort((a,b)=>b.d.localeCompare(a.d) || b.id-a.id);
+    const recent = sorted.filter(t=>t.t==='expense').slice(0,8).map(mkRow);
+    const ledgerSrc = st.filterCat ? sorted.filter(t=>t.c===st.filterCat) : sorted;
+    const ledger = ledgerSrc.map(mkRow);
+    const ledgerSum = ledgerSrc.filter(t=>t.t==='expense').reduce((s,t)=>s+t.a,0);
+
+    // filter chips
+    const chipBase = (active) => 'display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--radius-md);font-size:13px;cursor:pointer;'+(active?'background:var(--color-surface-strong);font-weight:600;':'color:var(--color-body);');
+    const catsAll = mkCats(cats).map(c => ({ ...c, onFilter:()=>this.set({filterCat:c.name}), filterStyle: chipBase(st.filterCat===c.name) }));
+
+    // subs
+    const subs = this.subsRaw.map(s => ({ ...s, amtStr:this.won(s.a), initial:s.m.slice(0,1) }));
+    const subTotal = this.subsRaw.reduce((s,x)=>s+x.a,0);
+
+    // pro numbers
+    const top3 = cats.slice(0,3);
+    const top3pct = Math.round(top3.reduce((s,c)=>s+c.amt,0)/exp*100);
+    const fixed = cats.filter(c=>['주거','구독','공과금'].includes(c.name)).reduce((s,c)=>s+c.amt,0);
+    const variable = exp - fixed;
+    const B = (v,color)=>({ width:Math.round(v/exp*100)+'%', background:color, height:'100%' });
+
+    // sideview
+    const sel = st.txns.find(t=>t.id===st.selId);
+    const rc = st.txns.find(t=>t.id===st.reclassId);
+    const catOptions = Object.keys(this.CAT).map(name => ({
+      name, dotStyle:this.dot(this.CAT[name]),
+      chipStyle:'display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:var(--radius-pill);border:1px solid var(--color-hairline);font-size:14px;cursor:pointer;'+(rc&&rc.c===name?'background:var(--color-primary);color:#fff;border-color:var(--color-primary);':'background:var(--color-canvas);'),
+      onPick:()=>{ this.setState(s=>({ txns:s.txns.map(t=>t.id===s.reclassId?{...t,c:name}:t), reclassId:null })); },
+    }));
+
+    // nav styles
+    const navStyle=(active)=>'padding:8px 14px;border-radius:var(--radius-pill);font-size:14px;font-weight:600;cursor:pointer;'+(active?'background:var(--color-surface-strong);color:var(--color-ink);':'color:var(--color-body);');
+    const tabStyle=(active)=>'padding:7px 16px;border-radius:var(--radius-pill);font-size:14px;font-weight:600;cursor:pointer;'+(active?'background:var(--color-canvas);color:var(--color-ink);box-shadow:0 1px 2px rgba(0,0,0,.08);':'color:var(--color-body);');
+    const planPill = isPro
+      ? 'font-size:11px;padding:4px 10px;border-radius:var(--radius-pill);background:var(--color-primary);color:#fff;'
+      : 'font-size:11px;padding:4px 10px;border-radius:var(--radius-pill);background:var(--color-surface-strong);color:var(--color-body);';
+
+    // hero mockup bars
+    const heroBars = cats.slice(0,4).map(c => ({ name:c.name, amtStr:this.won(c.amt), barStyle:{ width:Math.round(c.amt/maxCat*100)+'%', height:'100%', background:c.color } }));
+
+    return {
+      // flags / nav
+      showAppBar: ['upload','mapping','dashboard','pro'].includes(st.screen),
+      scLanding: st.screen==='landing', scAuth: st.screen==='auth', scUpload: st.screen==='upload',
+      scMapping: st.screen==='mapping', scDashboard: st.screen==='dashboard', scPro: st.screen==='pro',
+      isPro, isGuest, isMember,
+      layoutA: st.layout==='a', layoutB: st.layout==='b', layoutC: st.layout==='c',
+      uploadIdle: st.upload==='idle', uploadParsing: st.upload==='parsing', uploadParsed: st.upload==='parsed',
+      proLocked: !isPro,
+      showSideView: !!sel, showReclass: !!rc, showUpgrade: st.showUpgrade,
+      navDashStyle: navStyle(st.screen==='dashboard'), navProStyle: navStyle(st.screen==='pro'),
+      tabAStyle: tabStyle(st.layout==='a'), tabBStyle: tabStyle(st.layout==='b'), tabCStyle: tabStyle(st.layout==='c'),
+      planPillStyle: planPill, planLabel: isPro?'PRO':'FREE',
+      // KPI
+      kpiExp:this.won(exp), kpiInc:'+'+this.won(inc).slice(1), kpiNet:this.won(inc-exp), kpiCount:this.expenses().length+'건',
+      // charts
+      donutImgA: React.createElement('img',{src:this.donutSrc(180,26), width:180, height:180, alt:'', style:{display:'block'}}),
+      donutImgB: React.createElement('img',{src:this.donutSrc(220,30), width:220, height:220, alt:'', style:{display:'block'}}),
+      catsTop: mkCats(cats.slice(0,6)), catsAll, catsTop3: mkCats(cats.slice(0,3)),
+      merchantsTop: this.merchants().slice(0,6),
+      recentTx: recent, ledgerTx: ledger,
+      ledgerTitle: st.filterCat ? st.filterCat+' 거래' : '전체 거래',
+      ledgerCount: ledgerSrc.length, ledgerSum:this.won(ledgerSum),
+      filterAllStyle: chipBase(!st.filterCat),
+      subs, subTotalStr:this.won(subTotal), subCount:subs.length,
+      mappingRows: [
+        { src:'이용일자', field:'거래일', conf:'98%' },
+        { src:'가맹점명', field:'가맹점', conf:'96%' },
+        { src:'이용금액', field:'금액 (지출)', conf:'99%' },
+        { src:'결제카드', field:'카드', conf:'91%' },
+        { src:'업종', field:'카테고리 (추정)', conf:'74%', low:true },
+        { src:'승인번호', field:'무시', conf:'—', skip:true },
+        { src:'이용구분', field:'무시', conf:'—', skip:true },
+      ].map(r => ({
+        ...r,
+        fieldStyle: r.skip
+          ? 'display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--color-muted)'
+          : 'display:inline-flex;align-items:center;padding:5px 12px;border-radius:var(--radius-pill);background:var(--color-surface-strong);color:var(--color-ink);font-size:13px;font-weight:600',
+        confColor: r.low ? 'color:var(--color-semantic-down);font-weight:600' : 'color:var(--color-muted)',
+      })),
+      // pro
+      diagnosis: [
+        '이번 달 총지출은 <strong style="color:var(--color-ink)">'+this.won(exp)+'</strong>으로, 총수입 '+this.won(inc)+'의 약 <strong style="color:var(--color-ink)">'+Math.round(exp/inc*100)+'%</strong> 수준입니다.',
+        '지출의 <strong style="color:var(--color-ink)">'+top3pct+'%</strong>가 '+top3.map(c=>c.name).join('·')+' 세 카테고리에 집중돼 있습니다.',
+        '고정비(주거·구독·공과금) '+this.won(fixed)+'를 제외한 변동비는 <strong style="color:var(--color-ink)">'+this.won(variable)+'</strong>이며, 이 중 쇼핑의 비중이 가장 큽니다.',
+        '반복 결제로 추정되는 정기구독 5건이 매월 약 <strong style="color:var(--color-ink)">'+this.won(subTotal)+'</strong> 빠져나가는 것으로 보입니다. (단일 파일 기준 추정)',
+      ].map(html => React.createElement('span', { dangerouslySetInnerHTML: { __html: html } })),
+      fixedStr:this.won(fixed), varStr:this.won(variable),
+      fixedPct:Math.round(fixed/exp*100)+'%', varPct:Math.round(variable/exp*100)+'%',
+      fixedBarStyle: B(fixed,'#0a2a8f'), varBarStyle: B(variable,'#7aa1ff'),
+      savings: [
+        { title:'배달 앱 지출 줄이기', detail:'이번 달 배달의민족 3건 ₩70,100. 주 1회로 줄이면', save:'약 ₩30,000/월' },
+        { title:'중복 구독 점검', detail:'유튜브 프리미엄·넷플릭스 동시 구독 중. 시청 패턴에 따라 1개 정리 시', save:'₩13,500~14,900/월' },
+        { title:'카페 지출', detail:'카페/간식 4건 ₩28,500. 텀블러·사내 카페 활용 시', save:'약 ₩12,000/월' },
+      ],
+      // sideview
+      svMerchant: sel?sel.m:'', svAmt: sel?(sel.t==='income'?'+':'−')+this.won(sel.a).slice(1):'',
+      svDate: sel?sel.d.replace(/-/g,'.'):'', svCard: sel?sel.k:'', svCat: sel?sel.c:'',
+      svDotStyle: sel?this.dot(this.CAT[sel.c]||'#9bb6ff'):this.dot('#9bb6ff'),
+      reclassMerchant: rc?rc.m:'', catOptions,
+      // landing content
+      features: [
+        { title:'컬럼 자동 매핑', body:'인코딩 감지 후 Claude가 헤더+샘플 20행만 읽어 표준 스키마로 정규화합니다. 카드사별 형식을 하드코딩 없이 흡수해요.', icon:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>' },
+        { title:'통합 소비 대시보드', body:'여러 카드·계좌를 하나의 뷰로. 카테고리·상위 가맹점·순지출을 파이·바 차트로 즉시 확인합니다.', icon:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 9l-5 5-3-3-4 4"/></svg>' },
+        { title:'Pro 지출 진단', body:'Opus 4.8이 집계를 근거로 서술형 진단·절감 제안·정기구독 후보를 구조화해 알려줍니다.', icon:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/><path d="M12 8v4l3 2"/></svg>' },
+      ],
+      freeFeatures: ['소비 대시보드 전체','카테고리·상위 가맹점·순지출','기본 소비 분석 (Sonnet 4.6)','거래 재분류·상세 뷰'],
+      proFeatures: ['지출 진단 리포트 (Opus 4.8)','정기구독 후보 탐지','절감 제안·카테고리 심층','업로드·분석 무제한'],
+      heroBars,
+      // handlers
+      goLanding:()=>this.set({screen:'landing',guest:false,plan:'free',upload:'idle'}),
+      goAuth:()=>this.set({screen:'auth'}),
+      goUpload:()=>this.set({screen:'upload',upload:'idle'}),
+      goMapping:()=>this.set({screen:'mapping'}),
+      goDash:()=>this.set({screen:'dashboard'}),
+      goPro:()=>this.set({screen:'pro'}),
+      tryGuest:()=>this.set({screen:'dashboard',guest:true,plan:'free'}),
+      signInKakao:()=>this.set({screen:'upload',guest:false}),
+      signInGoogle:()=>this.set({screen:'upload',guest:false}),
+      loadSample:()=>{ this.set({upload:'parsing'}); setTimeout(()=>this.set({upload:'parsed'}),1100); },
+      resetUpload:()=>this.set({upload:'idle'}),
+      confirmMapping:()=>this.set({screen:'dashboard',mapped:true}),
+      setLayoutA:()=>this.set({layout:'a'}), setLayoutB:()=>this.set({layout:'b'}), setLayoutC:()=>this.set({layout:'c'}),
+      clearFilter:()=>this.set({filterCat:null}),
+      closeTx:()=>this.set({selId:null}),
+      openReclass:()=>this.setState(s=>({reclassId:s.selId, selId:null})),
+      closeReclass:()=>this.set({reclassId:null}),
+      openUpgrade:()=>this.set({showUpgrade:true}),
+      closeUpgrade:()=>this.set({showUpgrade:false}),
+      doUpgrade:()=>this.set({plan:'pro',showUpgrade:false,screen:'pro'}),
+      stop:(e)=>e.stopPropagation(),
+    };
+  }
+}
+</script>
+</body>
+</html>

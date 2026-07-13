@@ -1,0 +1,7 @@
+:root {
+  /* Single shadow tier — do not add more */
+  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.04);
+
+  /* Focus ring for form inputs — 2px Coinbase Blue */
+  --focus-ring: 0 0 0 2px var(--color-primary);
+}

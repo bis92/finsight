@@ -1,0 +1,16 @@
+:root {
+  /* Base 4px unit spacing scale */
+  --space-xxs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-base: 16px;
+  --space-md: 20px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-xxl: 48px;
+  --space-section: 96px; /* rhythm between major editorial bands */
+
+  /* Layout */
+  --container-max: 1200px;
+  --card-padding: 32px;
+}
