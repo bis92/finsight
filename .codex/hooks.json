@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".codex/hooks/block-dangerous-command.sh",
+            "statusMessage": "위험 명령 검사",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".codex/hooks/verify.sh",
+            "statusMessage": "lint · build · test 실행",
+            "timeout": 600
+          }
+        ]
+      }
+    ]
+  }
+}
