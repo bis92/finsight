@@ -1,0 +1,32 @@
+:root {
+  /* Brand & accent — Coinbase Blue is the single action color, used scarcely */
+  --color-primary: #0052ff;
+  --color-primary-active: #003ecc;
+  --color-primary-disabled: #a8b8cc;
+  --color-accent-yellow: #f4b000; /* illustrative-only, on asset glyphs */
+
+  /* Surface */
+  --color-canvas: #ffffff;
+  --color-surface-soft: #f7f7f7;
+  --color-surface-strong: #eef0f3;
+  --color-surface-dark: #0a0b0d;
+  --color-surface-dark-elevated: #16181c;
+
+  /* Hairlines */
+  --color-hairline: #dee1e6;
+  --color-hairline-soft: #eef0f3;
+
+  /* Text */
+  --color-ink: #0a0b0d;
+  --color-body: #5b616e;
+  --color-body-strong: #0a0b0d;
+  --color-muted: #7c828a;
+  --color-muted-soft: #a8acb3;
+  --color-on-primary: #ffffff;
+  --color-on-dark: #ffffff;
+  --color-on-dark-soft: #a8acb3;
+
+  /* Trading semantics — TEXT COLOR ONLY, never background fills */
+  --color-semantic-up: #05b169;
+  --color-semantic-down: #cf202f;
+}
