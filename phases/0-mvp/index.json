@@ -7,7 +7,8 @@
       "name": "project-setup",
       "status": "completed",
       "started_at": "2026-07-13T23:30:19+0900",
-      "summary": "Next.js 15.5.20·React 19.2.7·Tailwind CSS 3.4.19·Vitest 3.2.7 툴체인과 App Router 골격, react-query Provider, 디자인 토큰, 서버 전용 DATA_SOURCE 가드를 구성"
+      "summary": "Next.js 15.5.20·React 19.2.7·Tailwind CSS 3.4.19·Vitest 3.2.7 툴체인과 App Router 골격, react-query Provider, 디자인 토큰, 서버 전용 DATA_SOURCE 가드를 구성",
+      "completed_at": "2026-07-13T23:34:36+0900"
     },
     {
       "step": 1,
