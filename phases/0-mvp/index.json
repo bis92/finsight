@@ -40,7 +40,7 @@
       "status": "completed",
       "started_at": "2026-07-13T23:44:05+0900",
       "summary": "TransactionsRepository·LlmService 2개 시임과 services/mock 아래 결정적 거래·프로필·업로드 fixture, 플랜별 LLM mock, DATA_SOURCE 팩토리를 구성",
-      "completed_at": "2026-07-13T23:48:12+0900"
+      "completed_at": "2026-07-13T23:48:51+0900"
     },
     {
       "step": 5,
