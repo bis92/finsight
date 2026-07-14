@@ -18,12 +18,13 @@ export const analysisKeys = {
   proReport: (period: string) => ['analyses', 'pro-report', period] as const,
 }
 
-export function useProReport(period: string) {
+export function useProReport(period: string, enabled = true) {
   const query = useQuery({
     queryKey: analysisKeys.proReport(period),
     queryFn: () => apiClient.get<ProReport>(
       `/api/pro-report?period=${encodeURIComponent(period)}`,
     ),
+    enabled,
   })
 
   return {
