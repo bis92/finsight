@@ -53,7 +53,10 @@
     {
       "step": 6,
       "name": "data-layer",
-      "status": "pending"
+      "status": "completed",
+      "started_at": "2026-07-14T20:44:41+0900",
+      "summary": "서버 message를 보존하는 apiClient·ApiError와 transactions·insights·uploads·profile·analyses react-query 훅 및 공통 조회 상태를 구성",
+      "completed_at": "2026-07-14T20:46:50+0900"
     },
     {
       "step": 7,
