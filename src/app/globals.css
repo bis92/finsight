@@ -134,3 +134,23 @@
     font-family: var(--font-sans);
   }
 }
+
+@keyframes fs-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes fs-slide {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes fs-spin {
+  to { transform: rotate(360deg); }
+}
+
+@layer utilities {
+  .fs-fade { animation: fs-fade 0.28s ease both; }
+  .fs-slide { animation: fs-slide 0.25s ease both; }
+  .fs-spin { animation: fs-spin 0.8s linear infinite; }
+}

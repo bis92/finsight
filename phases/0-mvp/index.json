@@ -61,7 +61,10 @@
     {
       "step": 7,
       "name": "ui-primitives",
-      "status": "pending"
+      "status": "completed",
+      "started_at": "2026-07-14T20:47:29+0900",
+      "summary": "Button·Card·Input·Badge·StatCard·Modal·SideView·Amount·행·레이아웃 프리미티브와 직접 SVG Donut·BarRow·LegendRow 차트를 구성",
+      "completed_at": "2026-07-14T20:51:15+0900"
     },
     {
       "step": 8,
