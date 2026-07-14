@@ -48,7 +48,7 @@
       "status": "completed",
       "started_at": "2026-07-13T23:48:51+0900",
       "summary": "uploads mapping·upload, transactions 조회·재분류, insights, Pro report, profile 라우트와 서버 plan 게이팅·입력 검증·5xx 일반화 정책을 구성",
-      "completed_at": "2026-07-14T20:43:56+0900"
+      "completed_at": "2026-07-14T20:44:41+0900"
     },
     {
       "step": 6,
