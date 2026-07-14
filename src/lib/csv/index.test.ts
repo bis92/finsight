@@ -7,6 +7,7 @@ import {
   decodeCsv,
   detectEncoding,
   parseCsv,
+  requiresManualMapping,
 } from '@/lib/csv'
 import type { ColumnMappingResult } from '@/types'
 
@@ -63,6 +64,17 @@ describe('buildMappingInput', () => {
     })
     expect(input.sampleRows).toHaveLength(20)
     expect(input.sampleRows).not.toContainEqual(headers)
+  })
+})
+
+describe('requiresManualMapping', () => {
+  it('requires confirmation when confidence is below 0.75 or a required role is missing', () => {
+    expect(requiresManualMapping({ mapping, confidence: 0.74, missingRequired: [] })).toBe(true)
+    expect(requiresManualMapping({ mapping, confidence: 0.99, missingRequired: ['amount'] })).toBe(true)
+  })
+
+  it('allows confirmation when confidence is at least 0.75 and required roles exist', () => {
+    expect(requiresManualMapping({ mapping, confidence: 0.75, missingRequired: [] })).toBe(false)
   })
 })
 

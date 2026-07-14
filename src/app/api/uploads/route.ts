@@ -20,14 +20,18 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     requireConfirmedMapping(body.mapping)
-    const transactions = requireTransactions(body.transactions)
-    await getTransactionsRepository().insertMany(CURRENT_USER_ID, transactions)
-
     const uploads = await getUploadsService()(CURRENT_USER_ID)
-    const upload = uploads.find(({ id }) => id === transactions[0]?.uploadId) ?? uploads[0]
+    const upload = uploads[0]
     if (!upload) {
-      throw new Error('Mock upload was not found after inserting transactions')
+      throw new Error('Upload was not found before inserting transactions')
     }
+    const submitted = Array.isArray(body.transactions)
+      ? body.transactions.map((transaction) => isRecord(transaction)
+        ? { ...transaction, uploadId: upload.id }
+        : transaction)
+      : body.transactions
+    const transactions = requireTransactions(submitted)
+    await getTransactionsRepository().insertMany(CURRENT_USER_ID, transactions)
 
     return NextResponse.json(upload, { status: 201 })
   })

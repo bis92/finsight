@@ -1,7 +1,3 @@
-import { Buffer } from 'node:buffer'
-
-import iconv from 'iconv-lite'
-
 import type {
   ColumnMappingInput,
   ColumnMappingResult,
@@ -14,11 +10,7 @@ export type CsvEncoding = 'utf-8' | 'euc-kr'
 const UTF8_BOM = [0xef, 0xbb, 0xbf] as const
 const INCOME_SIGNAL = /(환불|취소|입금|급여|수입)/
 
-function asBuffer(bytes: Uint8Array | Buffer): Buffer {
-  return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength)
-}
-
-export function detectEncoding(bytes: Uint8Array | Buffer): CsvEncoding {
+export function detectEncoding(bytes: Uint8Array): CsvEncoding {
   if (UTF8_BOM.every((byte, index) => bytes[index] === byte)) {
     return 'utf-8'
   }
@@ -32,14 +24,14 @@ export function detectEncoding(bytes: Uint8Array | Buffer): CsvEncoding {
 }
 
 export function decodeCsv(
-  bytes: Uint8Array | Buffer,
+  bytes: Uint8Array,
   encoding: CsvEncoding,
 ): string {
   if (encoding === 'utf-8') {
     return new TextDecoder('utf-8').decode(bytes).replace(/^\uFEFF/, '')
   }
 
-  return iconv.decode(asBuffer(bytes), 'euc-kr').replace(/^\uFEFF/, '')
+  return new TextDecoder('euc-kr').decode(bytes).replace(/^\uFEFF/, '')
 }
 
 function isBlankRow(row: string[]): boolean {
@@ -112,6 +104,10 @@ export function buildMappingInput(
     sampleRows: rows.slice(0, 20),
     locale,
   }
+}
+
+export function requiresManualMapping(result: ColumnMappingResult): boolean {
+  return result.confidence < 0.75 || result.missingRequired.length > 0
 }
 
 function normalizeDate(value: string): string | null {
