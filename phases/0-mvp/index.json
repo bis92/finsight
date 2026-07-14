@@ -85,7 +85,10 @@
     {
       "step": 10,
       "name": "marketing-auth",
-      "status": "pending"
+      "status": "completed",
+      "started_at": "2026-07-14T22:35:47+0900",
+      "summary": "dark hero 랜딩·fixture 기반 읽기전용 게스트 데모·DATA_SOURCE live fail-closed 스텁 인증을 구성",
+      "completed_at": "2026-07-14T22:39:52+0900"
     },
     {
       "step": 11,

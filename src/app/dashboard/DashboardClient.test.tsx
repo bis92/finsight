@@ -75,4 +75,18 @@ describe('DashboardClient', () => {
       expect.objectContaining({ onSuccess: expect.any(Function) }),
     )
   })
+
+  it('keeps the fixture demo read-only and sends users to login', async () => {
+    await act(async () => root.render(<DashboardClient guest />))
+
+    expect(container.textContent).toContain('샘플 데이터로 보는 읽기 전용 대시보드입니다.')
+    expect(container.querySelector('a[href="/login"]')?.textContent).toContain('내 파일로 해보기')
+
+    const transaction = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('배달의민족'))
+    await act(async () => transaction?.click())
+    const reclassifyButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent === '카테고리 재분류')
+
+    expect(reclassifyButton?.disabled).toBe(true)
+    expect(mutate).not.toHaveBeenCalled()
+  })
 })

@@ -17,11 +17,11 @@ export const insightKeys = {
   period: (period: string) => ['insights', period] as const,
 }
 
-export function useInsights(period: string) {
+export function useInsights(period: string, guest = false) {
   const query = useQuery({
-    queryKey: insightKeys.period(period),
+    queryKey: [...insightKeys.period(period), guest],
     queryFn: () => apiClient.get<InsightsResponse>(
-      `/api/insights?period=${encodeURIComponent(period)}`,
+      `/api/insights?period=${encodeURIComponent(period)}${guest ? '&guest=1' : ''}`,
     ),
   })
 

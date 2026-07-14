@@ -9,18 +9,19 @@ import { queryState } from '../queryState'
 
 export const transactionKeys = {
   all: ['transactions'] as const,
-  list: (range?: DateRange) => ['transactions', range ?? null] as const,
+  list: (range?: DateRange, guest = false) => ['transactions', range ?? null, guest] as const,
 }
 
-export function useTransactions(range?: DateRange) {
+export function useTransactions(range?: DateRange, guest = false) {
   const query = useQuery({
-    queryKey: transactionKeys.list(range),
+    queryKey: transactionKeys.list(range, guest),
     queryFn: () => {
       const params = new URLSearchParams()
       if (range) {
         params.set('from', range.from)
         params.set('to', range.to)
       }
+      if (guest) params.set('guest', '1')
       const queryString = params.toString()
       return apiClient.get<{ transactions: Transaction[] }>(
         `/api/transactions${queryString ? `?${queryString}` : ''}`,

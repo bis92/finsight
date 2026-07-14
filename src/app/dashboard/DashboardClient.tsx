@@ -45,8 +45,8 @@ function SectionHeading({ title, description }: { title: string; description?: s
 }
 
 export function DashboardClient({ guest }: { guest: boolean }) {
-  const { transactions, queryState } = useTransactions()
-  const { insights, queryState: insightState } = useInsights(PERIOD)
+  const { transactions, queryState } = useTransactions(undefined, guest)
+  const { insights, queryState: insightState } = useInsights(PERIOD, guest)
   const { profile } = useProfile()
   const reclassify = useReclassify()
   const [tab, setTab] = useState<Tab>('overview')
@@ -100,7 +100,7 @@ export function DashboardClient({ guest }: { guest: boolean }) {
         <div className="mb-lg flex flex-wrap items-center gap-base rounded-lg border border-primary bg-canvas px-lg py-base">
           <Badge variant="pro">DEMO</Badge>
           <p className="flex-1 text-body-sm text-body">샘플 데이터로 보는 읽기 전용 대시보드입니다.</p>
-          <Link href="/upload" className="text-body-sm font-title-sm text-primary">내 파일로 해보기 →</Link>
+          <Link href="/login" className="text-body-sm font-title-sm text-primary">내 파일로 해보기 →</Link>
         </div>
       ) : null}
 
