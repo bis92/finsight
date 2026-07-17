@@ -3,6 +3,7 @@ import 'server-only'
 
 import { getDataSource } from '@/lib/env'
 
+import { liveTransactionsRepository } from './live/transactions'
 import { mockLlmService } from './mock/llm'
 import { getMockProfile } from './mock/profile'
 import { mockTransactionsRepository } from './mock/transactions'
@@ -16,8 +17,9 @@ function assertMockDataSource(): void {
 }
 
 export function getTransactionsRepository(): TransactionsRepository {
-  assertMockDataSource()
-  return mockTransactionsRepository
+  return getDataSource() === 'live'
+    ? liveTransactionsRepository
+    : mockTransactionsRepository
 }
 
 export function getLlmService(): LlmService {
