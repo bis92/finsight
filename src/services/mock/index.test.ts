@@ -149,13 +149,16 @@ describe('service factories', () => {
     expect(services.getUploadsService()).toBe(uploads)
   })
 
-  it('fails closed when DATA_SOURCE is invalid', async () => {
+  it('fails closed for every factory when DATA_SOURCE is invalid', async () => {
     process.env.DATA_SOURCE = 'invalid'
     vi.resetModules()
 
     const services = await import('@/services')
+    const message = 'DATA_SOURCE must be either "mock" or "live"'
 
-    expect(() => services.getTransactionsRepository())
-      .toThrowError('DATA_SOURCE must be either "mock" or "live"')
+    expect(() => services.getTransactionsRepository()).toThrowError(message)
+    expect(() => services.getLlmService()).toThrowError(message)
+    expect(() => services.getProfileService()).toThrowError(message)
+    expect(() => services.getUploadsService()).toThrowError(message)
   })
 })

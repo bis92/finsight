@@ -87,8 +87,8 @@ interface LlmService {
 
 ## 환경변수 (전부 서버 전용, `NEXT_PUBLIC_`는 anon만)
 
-- 공개 가능(phase 1): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-- 서버 전용(phase 1): `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`.
+- 공개 가능(phase 1): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL`(배포 origin — checkout 반환 URL 생성).
+- 서버 전용(phase 1): `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`, `POLAR_PRODUCT_ID`(Pro checkout 대상 상품 식별자 — 시크릿 아님).
 - `DATA_SOURCE=mock|live` — repository 스위치.
 - 인증: 카카오·구글 OAuth provider는 Supabase Auth 대시보드에서 설정. 카카오는 Supabase 기본 provider가 아니라 커스텀 OIDC 등록 필요(ADR-002).
 
