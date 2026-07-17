@@ -37,3 +37,19 @@ export function getSupabaseServiceRoleKey(): string {
 export function getAnthropicApiKey(): string {
   return getRequiredEnvironmentVariable('ANTHROPIC_API_KEY')
 }
+
+export function getPolarAccessToken(): string {
+  return getRequiredEnvironmentVariable('POLAR_ACCESS_TOKEN')
+}
+
+export function getPolarWebhookSecret(): string {
+  return getRequiredEnvironmentVariable('POLAR_WEBHOOK_SECRET')
+}
+
+export function getPolarProductId(): string {
+  return getRequiredEnvironmentVariable('POLAR_PRODUCT_ID')
+}
+
+export function getSiteUrl(): string {
+  return getRequiredEnvironmentVariable('NEXT_PUBLIC_SITE_URL')
+}

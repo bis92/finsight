@@ -2,9 +2,28 @@
   "project": "finsight",
   "phase": "5-payment",
   "steps": [
-    { "step": 0, "name": "polar-checkout", "status": "pending" },
-    { "step": 1, "name": "upgrade-flow", "status": "pending" },
-    { "step": 2, "name": "webhook-plan-sync", "status": "pending" },
-    { "step": 3, "name": "plan-lifecycle", "status": "pending" }
-  ]
+    {
+      "step": 0,
+      "name": "polar-checkout",
+      "status": "completed",
+      "summary": "Polar SDK 클라이언트와 checkout 라우트를 추가하고 server-only env 및 metadata·externalCustomerId userId 매핑을 적용",
+      "started_at": "2026-07-17T15:56:02+0900"
+    },
+    {
+      "step": 1,
+      "name": "upgrade-flow",
+      "status": "pending"
+    },
+    {
+      "step": 2,
+      "name": "webhook-plan-sync",
+      "status": "pending"
+    },
+    {
+      "step": 3,
+      "name": "plan-lifecycle",
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-07-17T15:56:02+0900"
 }
