@@ -29,7 +29,10 @@
     {
       "step": 3,
       "name": "db-types-clients",
-      "status": "pending"
+      "status": "completed",
+      "started_at": "2026-07-17T15:09:43+0900",
+      "summary": "5개 테이블 database row 타입과 쿠키 기반 user-scoped·Polar 웹훅 전용 service-role Supabase 클라이언트 추가",
+      "completed_at": "2026-07-17T15:11:54+0900"
     }
   ],
   "created_at": "2026-07-17T15:04:31+0900"
