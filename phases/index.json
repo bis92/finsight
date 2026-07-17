@@ -27,7 +27,8 @@
     },
     {
       "dir": "5-payment",
-      "status": "pending"
+      "status": "completed",
+      "completed_at": "2026-07-17T16:07:04+0900"
     },
     {
       "dir": "6-launch",
