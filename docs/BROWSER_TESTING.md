@@ -168,6 +168,60 @@ for (let i=0;i<3;i++){ try{ await page.getByText("파싱 완료").waitFor({timeo
 **검증 규칙**: **페이월은 데이터 레벨 차단**(CSS 블러 금지), **5xx 내부 예외 은닉**(스택·원문 노출 금지),
 Pro 앵커=Opus 4.8 지출 진단.
 
+## UC6 — EUC-KR 인코딩 감지
+
+**목적**: 국내 카드사 EUC-KR CSV의 인코딩 자동 감지·디코딩.
+
+**단계**(로그인 후)
+1. EUC-KR 바이트 CSV를 `/upload`에 주입. 문자열이 아니라 **바이트**여야 하므로 base64→`Uint8Array`→`File`로 만든다.
+2. `파싱 완료` 미리보기의 인코딩 라벨 확인.
+
+```js
+// 호스트에서 EUC-KR CSV를 base64로 만들어 ~/.dev-browser/tmp/euckr.b64 에 저장해 둔다:
+//   python3 -c "import base64;open('~/.dev-browser/tmp/euckr.b64','w').write(base64.b64encode('이용일자,가맹점명,이용금액\n2026-06-01,편의점,3200\n'.encode('euc-kr')).decode())"
+const b64 = await readFile("euckr.b64");
+await page.evaluate((b64) => {
+  const bin = atob(b64); const bytes = new Uint8Array(bin.length);
+  for (let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+  const input = document.querySelector("input[type=file]");
+  const f = new File([bytes], "euckr-sample.csv", { type: "text/csv" });
+  const dt = new DataTransfer(); dt.items.add(f); input.files = dt.files;
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+}, b64);
+```
+
+**기대 결과**: 미리보기 `인코딩 EUC-KR / 거래 3행 / 컬럼 3개`. **검증 규칙**: 인코딩 감지 폴백(UTF-8/EUC-KR).
+
+## UC7 — 매핑 실패 → 수동 매핑 강제
+
+**목적**: LLM이 필수 컬럼을 못 찾을 때(`confidence < 0.75` 또는 `missingRequired`) 수동 매핑을 강제하는 가드.
+
+**단계**(로그인 후)
+1. 필수 헤더가 인식 alias에 없는 CSV(예: `날짜,상호,금액원`)를 업로드 → `컬럼 확인하기 →`.
+2. 매핑 화면 상태 확인 → 드롭다운으로 `date`·`merchant`·`amount` 지정 → 확정.
+
+**기대 결과**
+- 진입 시: 빨간 경고 `신뢰도가 낮거나 필수 컬럼이 누락되었습니다…`, `필수 필드 3개 누락` 배지, **확정 버튼 비활성**(드롭다운 전부 `무시`).
+- 필수 3개 지정 후: 배지 사라지고 **확정 활성** → `/dashboard`.
+
+**검증 규칙**: `requiresManualMapping` 가드(ARCHITECTURE §시임), 매핑 오류 시 사용자 확인·수정 경로 필수(ADR-004). **UC8(수동 수정 후 확정)을 함께 커버**한다.
+
+## UC9 — 재분류 반영
+
+**목적**: 재분류 Modal에서 카테고리 변경 시 API 반영 및 UI 동작.
+
+**단계**(로그인 후)
+1. `/dashboard` → 거래 클릭(SideView) → `카테고리 재분류` → Modal에서 현재와 **다른 카테고리** 선택.
+
+**기대 결과**
+- `PATCH /api/transactions/{id}` → **200**.
+- 성공 시 **Modal + SideView 모두 닫힘**.
+- 재조회 시 카테고리는 원래값으로 복귀 — **mock은 비영속**이라 정상(ADR-008). 영속 반영은 live(phase 3)에서 검증.
+
+**검증 규칙**: 재분류 = Modal(수정), `category` 고정 enum.
+
+> **관찰**: 재분류 성공 시 SideView까지 닫혀 변경 결과를 상세에서 바로 확인할 수 없다. 의도된 UX인지 검토 여지 있음(사소).
+
 ---
 
 ## 회귀 체크리스트
@@ -179,16 +233,16 @@ Pro 앵커=Opus 4.8 지출 진단.
 | UC3 | 파싱(UTF-8/20행) → 자동매핑(91%) + "20행만 분석" 문구 | ☐ |
 | UC4 | 상세 SideView + 재분류 Modal(enum 13종) | ☐ |
 | UC5 | 데이터 레벨 페이월 + 예외 은닉(500 일반문구) | ☐ |
+| UC6 | EUC-KR 인코딩 감지(미리보기 라벨) | ☐ |
+| UC7 | 매핑 실패 → 수동 매핑 강제 → 수정 후 확정 | ☐ |
+| UC9 | 재분류 PATCH 200 + Modal/SideView 닫힘 | ☐ |
 
 ## 로드맵(미커버 시나리오)
 
 향후 추가할 시나리오 — 지금은 미구현/미검증:
 
-- EUC-KR 인코딩 CSV 파싱(인코딩 감지 폴백).
-- 매핑 실패(`confidence < 0.75` 또는 `missingRequired`) → 수동 매핑 스텝 강제.
-- 매핑 드롭다운 수동 수정 후 확정.
-- 재분류 Modal 카테고리 선택 → SideView 카테고리 갱신 반영(닫힘 동작 확인 포함).
-- 환불/입금 거래의 `direction` 정규화 확인(순지출 = 지출 − 환입).
+- **환불/입금 거래의 `direction` 정규화**(순지출 = 지출 − 환입) — mock은 고정 fixture라 업로드 CSV가 집계에 반영되지 않아 **브라우저로 검증 불가**. `src/lib/analysis`·`src/lib/csv` **단위테스트 영역**이며, 영속 집계 반영은 live(phase 3) 이후 검증한다.
+- 매핑 드롭다운 다중 재지정(같은 컬럼을 여러 역할로 옮길 때 상호배타 갱신) 심화 케이스.
 
 ## 샘플 CSV
 
