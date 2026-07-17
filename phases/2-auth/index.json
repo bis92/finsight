@@ -7,7 +7,8 @@
       "name": "oauth-callback",
       "status": "completed",
       "started_at": "2026-07-17T15:13:33+0900",
-      "summary": "src/app/auth/callback/route.ts에 provider-agnostic OAuth 코드 교환과 내부 상대경로 검증 기반 오픈 리다이렉트 방어를 구현"
+      "summary": "src/app/auth/callback/route.ts에 provider-agnostic OAuth 코드 교환과 내부 상대경로 검증 기반 오픈 리다이렉트 방어를 구현",
+      "completed_at": "2026-07-17T15:15:53+0900"
     },
     {
       "step": 1,
