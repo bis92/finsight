@@ -16,7 +16,7 @@
       "status": "completed",
       "started_at": "2026-07-17T15:26:36+0900",
       "summary": "비공개 uploads bucket과 소유 경로 RLS, 서명 URL Storage 헬퍼, user-scoped live uploads 서비스 및 팩토리 분기를 구현",
-      "completed_at": "2026-07-17T15:30:25+0900"
+      "completed_at": "2026-07-17T15:31:11+0900"
     },
     {
       "step": 2,
