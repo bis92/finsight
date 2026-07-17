@@ -16,7 +16,7 @@
       "status": "completed",
       "started_at": "2026-07-17T15:15:53+0900",
       "summary": "서버 세션 헬퍼와 보호 미들웨어, mock/live resolveCurrentUserId, 카카오·구글 OAuth 로그인 배선을 구현",
-      "completed_at": "2026-07-17T15:18:35+0900"
+      "completed_at": "2026-07-17T15:19:14+0900"
     },
     {
       "step": 2,
