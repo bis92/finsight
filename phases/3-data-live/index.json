@@ -24,7 +24,7 @@
       "status": "completed",
       "started_at": "2026-07-17T15:31:12+0900",
       "summary": "업로드 파이프라인 live 배선과 CSV 파싱→거래 저장→status 전이 및 안전한 에러 정책을 구현",
-      "completed_at": "2026-07-17T15:35:38+0900"
+      "completed_at": "2026-07-17T15:36:19+0900"
     },
     {
       "step": 3,
