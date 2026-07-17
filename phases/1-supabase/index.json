@@ -13,7 +13,10 @@
     {
       "step": 1,
       "name": "schema-migrations",
-      "status": "pending"
+      "status": "completed",
+      "started_at": "2026-07-17T15:06:34+0900",
+      "summary": "profiles·uploads·transactions·analyses·subscriptions 테이블과 5개 enum·비음수 금액 제약·거래 집계 인덱스 추가",
+      "completed_at": "2026-07-17T15:07:44+0900"
     },
     {
       "step": 2,
