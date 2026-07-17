@@ -22,7 +22,8 @@
     },
     {
       "dir": "4-llm",
-      "status": "pending"
+      "status": "completed",
+      "completed_at": "2026-07-17T15:55:30+0900"
     },
     {
       "dir": "5-payment",
