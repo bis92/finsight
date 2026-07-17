@@ -36,6 +36,26 @@ export async function listUploadsByUser(userId: string): Promise<Upload[]> {
   return data.map(toUpload)
 }
 
+export async function countUploadsInRange(
+  userId: string,
+  startInclusive: string,
+  endExclusive: string,
+): Promise<number> {
+  const client = await createSupabaseServerClient()
+  const { count, error } = await client
+    .from('uploads')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .gte('created_at', startInclusive)
+    .lt('created_at', endExclusive)
+
+  if (error) {
+    throw error
+  }
+
+  return count ?? 0
+}
+
 export async function createUpload(
   userId: string,
   originalName: string,

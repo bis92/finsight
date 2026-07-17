@@ -11,6 +11,7 @@ vi.mock('@/lib/supabase/server-client', () => ({
 }))
 
 import {
+  countUploadsInRange,
   createUpload,
   listUploadsByUser,
   setUploadStatus,
@@ -73,6 +74,25 @@ describe('live uploads service', () => {
       status: 'parsing',
       error_message: null,
     })
+  })
+
+  it('counts user uploads in a half-open created-at range', async () => {
+    const lt = vi.fn().mockResolvedValue({ count: 5, error: null })
+    const gte = vi.fn(() => ({ lt }))
+    const eq = vi.fn(() => ({ gte }))
+    const select = vi.fn(() => ({ eq }))
+    const from = vi.fn(() => ({ select }))
+    createSupabaseServerClientMock.mockResolvedValue({ from })
+
+    await expect(countUploadsInRange(
+      'user-1',
+      '2026-06-01T00:00:00.000Z',
+      '2026-07-01T00:00:00.000Z',
+    )).resolves.toBe(5)
+    expect(select).toHaveBeenCalledWith('id', { count: 'exact', head: true })
+    expect(eq).toHaveBeenCalledWith('user_id', 'user-1')
+    expect(gte).toHaveBeenCalledWith('created_at', '2026-06-01T00:00:00.000Z')
+    expect(lt).toHaveBeenCalledWith('created_at', '2026-07-01T00:00:00.000Z')
   })
 
   it('transitions status only on the matching user upload', async () => {

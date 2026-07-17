@@ -4,8 +4,13 @@ import { getAuthenticatedUserId } from '@/lib/auth/session'
 import { applyMapping, decodeCsv, detectEncoding, parseCsv } from '@/lib/csv'
 import { getDataSource } from '@/lib/env'
 import { createSignedUploadUrl, uploadObjectPath } from '@/lib/supabase/storage'
-import { getTransactionsRepository, getUploadsService } from '@/services'
-import { createUpload, setUploadStatus } from '@/services/live/uploads'
+import {
+  FREE_UPLOAD_CAP_MESSAGE,
+  getUtcMonthRange,
+  isUploadAllowed,
+} from '@/lib/upload-cap'
+import { getProfileService, getTransactionsRepository, getUploadsService } from '@/services'
+import { countUploadsInRange, createUpload, setUploadStatus } from '@/services/live/uploads'
 import type { ColumnMappingResult } from '@/types'
 
 import {
@@ -60,6 +65,9 @@ async function postLiveUpload(request: Request): Promise<Response> {
       throw new ApiRouteError(401, '인증이 필요합니다')
     }
 
+    // ADR-006: 수익 게이트가 아니라 실제 LLM 비용이 발생하는 live 경로의 비용 안전장치다.
+    await enforceLiveUploadCap(userId, new Date())
+
     const form = await readUploadForm(request)
     const mapping = requireConfirmedMapping(parseMapping(form.get('mapping')))
     const file = requireCsvFile(form.get('file'))
@@ -92,6 +100,24 @@ async function postLiveUpload(request: Request): Promise<Response> {
       throw error
     }
   })
+}
+
+async function enforceLiveUploadCap(userId: string, now: Date): Promise<void> {
+  // Polar webhook이 갱신한 서버 profiles.plan만 신뢰한다.
+  const profile = await getProfileService()(userId)
+  if (profile.plan === 'pro') {
+    return
+  }
+
+  const { start, end } = getUtcMonthRange(now)
+  const uploadsThisMonth = await countUploadsInRange(
+    userId,
+    start.toISOString(),
+    end.toISOString(),
+  )
+  if (!isUploadAllowed({ plan: profile.plan, uploadsThisMonth })) {
+    throw new ApiRouteError(402, FREE_UPLOAD_CAP_MESSAGE)
+  }
 }
 
 async function readUploadForm(request: Request): Promise<FormData> {

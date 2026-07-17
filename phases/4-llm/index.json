@@ -37,7 +37,10 @@
     {
       "step": 4,
       "name": "upload-cap",
-      "status": "pending"
+      "status": "completed",
+      "started_at": "2026-07-17T15:52:56+0900",
+      "summary": "Free 월 5회 upload-cap 정책과 서버 profile·당월 DB count 기반 live-only 라우트 게이트를 추가",
+      "completed_at": "2026-07-17T15:54:55+0900"
     }
   ],
   "created_at": "2026-07-17T15:42:11+0900"

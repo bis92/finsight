@@ -11,6 +11,8 @@ const mocks = vi.hoisted(() => ({
   createSignedUploadUrl: vi.fn(),
   insertMany: vi.fn(),
   listUploads: vi.fn(),
+  getProfile: vi.fn(),
+  countUploadsThisMonth: vi.fn(),
   mapColumns: vi.fn(),
   generateInsights: vi.fn(),
 }))
@@ -25,10 +27,12 @@ vi.mock('@/lib/supabase/storage', () => ({
 vi.mock('@/services/live/uploads', () => ({
   createUpload: mocks.createUpload,
   setUploadStatus: mocks.setUploadStatus,
+  countUploadsInRange: mocks.countUploadsThisMonth,
 }))
 vi.mock('@/services', () => ({
   getTransactionsRepository: () => ({ insertMany: mocks.insertMany }),
   getUploadsService: () => mocks.listUploads,
+  getProfileService: () => mocks.getProfile,
   getLlmService: () => ({
     mapColumns: mocks.mapColumns,
     generateInsights: mocks.generateInsights,
@@ -74,6 +78,8 @@ describe('POST /api/uploads', () => {
     mocks.setUploadStatus.mockResolvedValue(doneUpload)
     mocks.insertMany.mockResolvedValue({ inserted: 2 })
     mocks.listUploads.mockResolvedValue([doneUpload])
+    mocks.getProfile.mockResolvedValue({ id: 'user-1', plan: 'free' })
+    mocks.countUploadsThisMonth.mockResolvedValue(0)
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 200 })))
   })
 
@@ -131,6 +137,29 @@ describe('POST /api/uploads', () => {
     consoleError.mockRestore()
   })
 
+  it('blocks a live Free user at five monthly uploads with the intended message', async () => {
+    mocks.countUploadsThisMonth.mockResolvedValue(5)
+
+    const response = await POST(liveRequest())
+
+    expect(response.status).toBe(402)
+    await expect(response.json()).resolves.toEqual({
+      message: '이번 달 무료 업로드 5회를 모두 사용했습니다. Pro로 업그레이드하면 무제한입니다.',
+    })
+    expect(mocks.getProfile).toHaveBeenCalledWith('user-1')
+    expect(mocks.createUpload).not.toHaveBeenCalled()
+    expect(mocks.insertMany).not.toHaveBeenCalled()
+  })
+
+  it('allows a live Pro user regardless of monthly upload count', async () => {
+    mocks.getProfile.mockResolvedValue({ id: 'user-1', plan: 'pro' })
+    mocks.countUploadsThisMonth.mockResolvedValue(500)
+
+    const response = await POST(liveRequest())
+
+    expect(response.status).toBe(201)
+  })
+
   it('keeps the existing mock JSON path unchanged', async () => {
     mocks.getDataSource.mockReturnValue('mock')
     const transaction = {
@@ -157,5 +186,7 @@ describe('POST /api/uploads', () => {
       { ...transaction, uploadId: 'upload-1' },
     ])
     expect(mocks.createUpload).not.toHaveBeenCalled()
+    expect(mocks.getProfile).not.toHaveBeenCalled()
+    expect(mocks.countUploadsThisMonth).not.toHaveBeenCalled()
   })
 })
