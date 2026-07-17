@@ -13,17 +13,10 @@ import { mockTransactionsRepository } from './mock/transactions'
 import { listMockUploadsByUser } from './mock/uploads'
 import type { LlmService, TransactionsRepository } from './types'
 
+// getDataSource() already fails closed on any value other than 'mock' | 'live',
+// so the union is exhaustive here — no unreachable default branch needed.
 function selectDataSource<T>(mockService: T, liveService: T): T {
-  const dataSource = getDataSource()
-
-  switch (dataSource) {
-    case 'mock':
-      return mockService
-    case 'live':
-      return liveService
-    default:
-      throw new Error(`Unsupported DATA_SOURCE: ${String(dataSource)}`)
-  }
+  return getDataSource() === 'live' ? liveService : mockService
 }
 
 export function getTransactionsRepository(): TransactionsRepository {
