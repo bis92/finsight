@@ -13,8 +13,28 @@ vi.mock('@anthropic-ai/sdk', () => ({
 }))
 
 import { requiresManualMapping } from '@/lib/csv'
-import { SONNET } from '@/lib/llm/client'
+import { OPUS, SONNET } from '@/lib/llm/client'
 import { liveLlmService } from '@/services/live/llm'
+import type { AggregateSnapshot } from '@/types'
+
+const snapshot: AggregateSnapshot = {
+  period: '2026-06',
+  totalExpense: 1_000_000,
+  totalIncome: 3_200_000,
+  netExpense: -2_200_000,
+  byCategory: [
+    { category: '식비', amount: 400_000, ratio: 0.4 },
+    { category: '주거', amount: 300_000, ratio: 0.3 },
+  ],
+  topMerchants: [{ merchant: '배달의민족', amount: 200_000, count: 4 }],
+}
+
+function mockJson(value: unknown) {
+  messagesCreate.mockResolvedValue({
+    stop_reason: 'end_turn',
+    content: [{ type: 'text', text: JSON.stringify(value) }],
+  })
+}
 
 describe('liveLlmService.mapColumns', () => {
   beforeEach(() => {
@@ -131,5 +151,67 @@ describe('liveLlmService.mapColumns', () => {
       missingRequired: ['merchant'],
     })
     expect(requiresManualMapping(result)).toBe(true)
+  })
+})
+
+describe('liveLlmService.generateInsights', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    process.env.ANTHROPIC_API_KEY = 'test-api-key'
+  })
+
+  it.each([
+    ['free', SONNET, [{ title: '소비 요약', kind: 'summary', segments: [{ text: '식비가 가장 큽니다.', emphasis: true }] }]],
+    ['pro', OPUS, [
+      { title: '지출 진단', kind: 'diagnosis', segments: [{ text: '변동비를 점검하세요.', emphasis: false }] },
+      { title: '절감 제안 1', kind: 'suggestion', segments: [{ text: '배달 횟수를 줄여보세요.', emphasis: false }], savingKrw: 20000 },
+      { title: '절감 제안 2', kind: 'suggestion', segments: [{ text: '주간 한도를 정하세요.', emphasis: false }], savingKrw: 10000 },
+    ]],
+  ] as const)('uses the plan-specific model and returns the intended %s distribution', async (plan, model, insights) => {
+    mockJson({ insights })
+
+    const result = await liveLlmService.generateInsights(snapshot, plan)
+
+    expect(messagesCreate.mock.calls[0][0].model).toBe(model)
+    expect(result).toHaveLength(insights.length)
+    expect(result.map(({ kind }) => kind)).toEqual(insights.map(({ kind }) => kind))
+  })
+
+  it('normalizes malformed insights and keeps only valid plain-text segments', async () => {
+    mockJson({ insights: [
+      { title: '잘못된 종류', kind: 'other', segments: [{ text: '제거', emphasis: false }] },
+      { title: '빈 본문', kind: 'summary', segments: [] },
+      { title: '진단', kind: 'diagnosis', segments: [{ text: '<strong>안전</strong> **본문**', emphasis: 'yes' }], savingKrw: 3000 },
+      { title: '절감', kind: 'suggestion', segments: [{ text: '절감 가능', emphasis: true }], savingKrw: -1234.6 },
+      { title: '반올림', kind: 'suggestion', segments: [{ text: '추가 절감', emphasis: false }], savingKrw: 1234.6 },
+      { title: '문자 아님', kind: 'summary', segments: [{ text: 42, emphasis: false }] },
+    ] })
+
+    await expect(liveLlmService.generateInsights(snapshot, 'pro')).resolves.toEqual([
+      { title: '진단', kind: 'diagnosis', segments: [{ text: '안전 본문', emphasis: false }] },
+      { title: '절감', kind: 'suggestion', segments: [{ text: '절감 가능', emphasis: true }], savingKrw: 0 },
+      { title: '반올림', kind: 'suggestion', segments: [{ text: '추가 절감', emphasis: false }], savingKrw: 1235 },
+    ])
+  })
+
+  it('returns a deterministic safe insight without calling Claude for an empty aggregate', async () => {
+    const empty = { ...snapshot, totalExpense: 0, totalIncome: 0, netExpense: 0, byCategory: [], topMerchants: [] }
+
+    await expect(liveLlmService.generateInsights(empty, 'free')).resolves.toEqual([
+      { title: '소비 분석', kind: 'summary', segments: [{ text: '분석할 거래 내역이 없습니다.', emphasis: false }] },
+    ])
+    expect(messagesCreate).not.toHaveBeenCalled()
+  })
+
+  it('provides only precomputed aggregate values and forbids model-side calculations', async () => {
+    mockJson({ insights: [{ title: '요약', kind: 'summary', segments: [{ text: '요약입니다.', emphasis: false }] }] })
+
+    await liveLlmService.generateInsights(snapshot, 'free')
+
+    const request = messagesCreate.mock.calls[0][0]
+    expect(request.messages[0].content).toContain(JSON.stringify(snapshot))
+    expect(request.system).toContain('계산하지 마세요')
+    expect(request.system).toContain('평문')
+    expect(request.output_config.format.type).toBe('json_schema')
   })
 })
