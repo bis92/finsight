@@ -39,3 +39,15 @@ npm run dev      # 개발 서버
 npm run build    # 프로덕션 빌드
 npm run lint     # ESLint
 npm run test     # Vitest (CI 모드, watch 아님)
+
+## 하네스 보조 도구
+- `.claude/scripts/repo-preflight.sh` — SessionStart 훅. 활성 워크트리가 2개 이상이면 동시성 경고(백그라운드 에이전트가 같은 리포를 커밋·머지 중일 수 있음). git 액션 전 `git fetch`로 상태 재확인 유도.
+- `.claude/skills/create-pr` — 브랜치 push + PR 생성 스킬. `gh` 있으면 `gh pr create`, 없으면 push URL 폴백(이 머신엔 gh 미설치).
+
+**변경 이력:**
+| 날짜 | 변경 내용 | 대상 | 사유 |
+|------|----------|------|------|
+| 2026-07-17 | 동시성 프리플라이트 훅 추가 | scripts/repo-preflight.sh, settings.json | 워크트리 다중 동시작업으로 세션 중 상태 뒤집힘 |
+| 2026-07-17 | create-pr 스킬 추가 | skills/create-pr | gh 미설치 시 PR 생성 폴백 필요 |
+| 2026-07-17 | `.claude/worktrees/` gitignore | .gitignore | 로컬 워크트리 status 노이즈 |
+| 2026-07-17 | blocked step metadata 커밋 + JSON 개행 | scripts/execute.py | blocked 분기 미커밋으로 워킹트리 오염 |
