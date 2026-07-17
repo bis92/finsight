@@ -11,3 +11,25 @@ export function getDataSource(): DataSource {
 
   return dataSource
 }
+
+function getRequiredEnvironmentVariable(name: string): string {
+  const value = process.env[name]
+
+  if (!value) {
+    throw new Error(`${name} is not set`)
+  }
+
+  return value
+}
+
+export function getSupabaseUrl(): string {
+  return getRequiredEnvironmentVariable('NEXT_PUBLIC_SUPABASE_URL')
+}
+
+export function getSupabaseAnonKey(): string {
+  return getRequiredEnvironmentVariable('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+}
+
+export function getSupabaseServiceRoleKey(): string {
+  return getRequiredEnvironmentVariable('SUPABASE_SERVICE_ROLE_KEY')
+}

@@ -2,9 +2,28 @@
   "project": "finsight",
   "phase": "1-supabase",
   "steps": [
-    { "step": 0, "name": "deps-env", "status": "pending" },
-    { "step": 1, "name": "schema-migrations", "status": "pending" },
-    { "step": 2, "name": "rls-policies", "status": "pending" },
-    { "step": 3, "name": "db-types-clients", "status": "pending" }
-  ]
+    {
+      "step": 0,
+      "name": "deps-env",
+      "status": "completed",
+      "started_at": "2026-07-17T15:04:31+0900",
+      "summary": "@supabase/supabase-js ^2.110.7·@supabase/ssr ^0.12.3 설치, Supabase env 접근자 3개 및 supabase/migrations 디렉토리 추가"
+    },
+    {
+      "step": 1,
+      "name": "schema-migrations",
+      "status": "pending"
+    },
+    {
+      "step": 2,
+      "name": "rls-policies",
+      "status": "pending"
+    },
+    {
+      "step": 3,
+      "name": "db-types-clients",
+      "status": "pending"
+    }
+  ],
+  "created_at": "2026-07-17T15:04:31+0900"
 }
