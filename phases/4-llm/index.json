@@ -7,7 +7,8 @@
       "name": "llm-client",
       "status": "completed",
       "started_at": "2026-07-17T15:42:11+0900",
-      "summary": "client.ts에 지연 Claude 클라이언트 팩토리, Sonnet/Opus 모델 상수, 어댑티브 씽킹 기반 구조화 JSON 헬퍼를 추가"
+      "summary": "client.ts에 지연 Claude 클라이언트 팩토리, Sonnet/Opus 모델 상수, 어댑티브 씽킹 기반 구조화 JSON 헬퍼를 추가",
+      "completed_at": "2026-07-17T15:44:37+0900"
     },
     {
       "step": 1,
