@@ -1,0 +1,40 @@
+{
+  "project": "finsight",
+  "phase": "2-auth",
+  "steps": [
+    {
+      "step": 0,
+      "name": "oauth-callback",
+      "status": "completed",
+      "started_at": "2026-07-17T15:13:33+0900",
+      "summary": "src/app/auth/callback/route.ts에 provider-agnostic OAuth 코드 교환과 내부 상대경로 검증 기반 오픈 리다이렉트 방어를 구현",
+      "completed_at": "2026-07-17T15:15:53+0900"
+    },
+    {
+      "step": 1,
+      "name": "session-middleware",
+      "status": "completed",
+      "started_at": "2026-07-17T15:15:53+0900",
+      "summary": "서버 세션 헬퍼와 보호 미들웨어, mock/live resolveCurrentUserId, 카카오·구글 OAuth 로그인 배선을 구현",
+      "completed_at": "2026-07-17T15:19:14+0900"
+    },
+    {
+      "step": 2,
+      "name": "profile-provisioning",
+      "status": "completed",
+      "started_at": "2026-07-17T15:19:14+0900",
+      "summary": "profiles 자동 생성 트리거(plan=free·멱등·SECURITY DEFINER)를 추가하고 정적 계약 테스트로 검증",
+      "completed_at": "2026-07-17T15:21:01+0900"
+    },
+    {
+      "step": 3,
+      "name": "stub-auth-retirement",
+      "status": "completed",
+      "started_at": "2026-07-17T15:21:01+0900",
+      "summary": "스텁 인증의 live fail-closed를 회귀 테스트로 고정하고 live Supabase 로그인 기본 경로와 게스트 읽기전용 데모 유지를 검증",
+      "completed_at": "2026-07-17T15:23:32+0900"
+    }
+  ],
+  "created_at": "2026-07-17T15:13:33+0900",
+  "completed_at": "2026-07-17T15:23:32+0900"
+}

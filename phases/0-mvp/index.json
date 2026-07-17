@@ -1,0 +1,104 @@
+{
+  "project": "finsight",
+  "phase": "0-mvp",
+  "steps": [
+    {
+      "step": 0,
+      "name": "project-setup",
+      "status": "completed",
+      "started_at": "2026-07-13T23:30:19+0900",
+      "summary": "Next.js 15.5.20·React 19.2.7·Tailwind CSS 3.4.19·Vitest 3.2.7 툴체인과 App Router 골격, react-query Provider, 디자인 토큰, 서버 전용 DATA_SOURCE 가드를 구성",
+      "completed_at": "2026-07-13T23:34:36+0900"
+    },
+    {
+      "step": 1,
+      "name": "core-types",
+      "status": "completed",
+      "started_at": "2026-07-13T23:34:36+0900",
+      "summary": "Transaction·Plan·Upload·ColumnMapping·AggregateSnapshot·Insight·SubscriptionCandidate 전역 계약과 고정 13종 Category 목록·라벨 헬퍼를 구성",
+      "completed_at": "2026-07-13T23:36:56+0900"
+    },
+    {
+      "step": 2,
+      "name": "lib-csv",
+      "status": "completed",
+      "started_at": "2026-07-13T23:36:57+0900",
+      "summary": "detectEncoding·decodeCsv·parseCsv·buildMappingInput·applyMapping 순수 함수와 UTF-8/EUC-KR, 샘플 20행 상한, 날짜·부호 없는 금액/direction 정규화를 구현",
+      "completed_at": "2026-07-13T23:40:20+0900"
+    },
+    {
+      "step": 3,
+      "name": "lib-analysis",
+      "status": "completed",
+      "started_at": "2026-07-13T23:40:20+0900",
+      "summary": "classify/classifyMany 키워드 분류, aggregate 지출·수입·카테고리·상위 가맹점 집계, detectSubscriptions 금액 유사도·주기·confidence 기반 후보 탐지를 구현",
+      "completed_at": "2026-07-13T23:44:05+0900"
+    },
+    {
+      "step": 4,
+      "name": "mock-services",
+      "status": "completed",
+      "started_at": "2026-07-13T23:44:05+0900",
+      "summary": "TransactionsRepository·LlmService 2개 시임과 services/mock 아래 결정적 거래·프로필·업로드 fixture, 플랜별 LLM mock, DATA_SOURCE 팩토리를 구성",
+      "completed_at": "2026-07-13T23:48:51+0900"
+    },
+    {
+      "step": 5,
+      "name": "api-routes",
+      "status": "completed",
+      "started_at": "2026-07-13T23:48:51+0900",
+      "summary": "uploads mapping·upload, transactions 조회·재분류, insights, Pro report, profile 라우트와 서버 plan 게이팅·입력 검증·5xx 일반화 정책을 구성",
+      "completed_at": "2026-07-14T20:44:41+0900"
+    },
+    {
+      "step": 6,
+      "name": "data-layer",
+      "status": "completed",
+      "started_at": "2026-07-14T20:44:41+0900",
+      "summary": "서버 message를 보존하는 apiClient·ApiError와 transactions·insights·uploads·profile·analyses react-query 훅 및 공통 조회 상태를 구성",
+      "completed_at": "2026-07-14T20:47:29+0900"
+    },
+    {
+      "step": 7,
+      "name": "ui-primitives",
+      "status": "completed",
+      "started_at": "2026-07-14T20:47:29+0900",
+      "summary": "Button·Card·Input·Badge·StatCard·Modal·SideView·Amount·행·레이아웃 프리미티브와 직접 SVG Donut·BarRow·LegendRow 차트를 구성",
+      "completed_at": "2026-07-14T20:52:19+0900"
+    },
+    {
+      "step": 8,
+      "name": "dashboard",
+      "status": "completed",
+      "started_at": "2026-07-14T20:52:19+0900",
+      "summary": "queries 훅과 Step 7 프리미티브로 KPI 4·3탭·차트·평문 Insight·거래 SideView·enum 재분류 Modal을 갖춘 Free 대시보드를 구성",
+      "completed_at": "2026-07-14T22:31:45+0900"
+    },
+    {
+      "step": 9,
+      "name": "upload-mapping",
+      "status": "completed",
+      "started_at": "2026-07-14T22:31:45+0900",
+      "summary": "단일 CSV 파싱·샘플 20행 매핑 요청·저신뢰/필수 누락 수동 확인 게이트·업로드 대시보드 연결 플로우를 구성",
+      "completed_at": "2026-07-14T22:35:47+0900"
+    },
+    {
+      "step": 10,
+      "name": "marketing-auth",
+      "status": "completed",
+      "started_at": "2026-07-14T22:35:47+0900",
+      "summary": "dark hero 랜딩·fixture 기반 읽기전용 게스트 데모·DATA_SOURCE live fail-closed 스텁 인증을 구성",
+      "completed_at": "2026-07-14T22:40:22+0900"
+    },
+    {
+      "step": 11,
+      "name": "pro-report-gating",
+      "status": "completed",
+      "started_at": "2026-07-14T22:40:22+0900",
+      "summary": "서버 profile plan 기반 Pro 리포트·평문 세그먼트 진단·코드 집계 비용 구성·절감/구독 후보와 데이터 레벨 페이월·mock 업그레이드 Modal을 구성",
+      "completed_at": "2026-07-14T22:43:41+0900"
+    }
+  ],
+  "created_at": "2026-07-13T23:30:19+0900",
+  "completed_at": "2026-07-14T22:43:41+0900"
+}

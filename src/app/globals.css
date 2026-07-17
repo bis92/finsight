@@ -1,0 +1,156 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #0052ff;
+  --color-primary-active: #003ecc;
+  --color-primary-disabled: #a8b8cc;
+  --color-accent-yellow: #f4b000;
+
+  --color-canvas: #ffffff;
+  --color-surface-soft: #f7f7f7;
+  --color-surface-strong: #eef0f3;
+  --color-surface-dark: #0a0b0d;
+  --color-surface-dark-elevated: #16181c;
+
+  --color-hairline: #dee1e6;
+  --color-hairline-soft: #eef0f3;
+
+  --color-ink: #0a0b0d;
+  --color-body: #5b616e;
+  --color-body-strong: #0a0b0d;
+  --color-muted: #7c828a;
+  --color-muted-soft: #a8acb3;
+  --color-on-primary: #ffffff;
+  --color-on-dark: #ffffff;
+  --color-on-dark-soft: #a8acb3;
+
+  --color-semantic-up: #05b169;
+  --color-semantic-down: #cf202f;
+
+  --radius-none: 0px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 100px;
+  --radius-full: 9999px;
+
+  --space-xxs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-base: 16px;
+  --space-md: 20px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-xxl: 48px;
+  --space-section: 96px;
+  --container-max: 1200px;
+  --card-padding: 32px;
+
+  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.04);
+  --focus-ring: 0 0 0 2px var(--color-primary);
+
+  --font-display: 'Pretendard', 'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif;
+  --font-sans: 'Pretendard', 'Inter', -apple-system, system-ui, 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  --type-display-mega-size: 80px;
+  --type-display-mega-lh: 1;
+  --type-display-mega-ls: -2px;
+  --type-display-xl-size: 64px;
+  --type-display-xl-lh: 1;
+  --type-display-xl-ls: -1.6px;
+  --type-display-lg-size: 52px;
+  --type-display-lg-lh: 1;
+  --type-display-lg-ls: -1.3px;
+  --type-display-md-size: 44px;
+  --type-display-md-lh: 1.09;
+  --type-display-md-ls: -1px;
+  --type-display-sm-size: 36px;
+  --type-display-sm-lh: 1.11;
+  --type-display-sm-ls: -0.5px;
+
+  --type-title-lg-size: 32px;
+  --type-title-lg-lh: 1.13;
+  --type-title-lg-ls: -0.4px;
+  --type-title-lg-weight: 400;
+  --type-title-md-size: 18px;
+  --type-title-md-lh: 1.33;
+  --type-title-md-weight: 600;
+  --type-title-sm-size: 16px;
+  --type-title-sm-lh: 1.25;
+  --type-title-sm-weight: 600;
+
+  --type-body-md-size: 16px;
+  --type-body-md-lh: 1.5;
+  --type-body-md-weight: 400;
+  --type-body-strong-size: 16px;
+  --type-body-strong-lh: 1.5;
+  --type-body-strong-weight: 700;
+  --type-body-sm-size: 14px;
+  --type-body-sm-lh: 1.5;
+  --type-caption-size: 13px;
+  --type-caption-lh: 1.5;
+  --type-caption-strong-size: 12px;
+  --type-caption-strong-lh: 1.5;
+  --type-caption-strong-weight: 600;
+
+  --type-number-display-size: 18px;
+  --type-number-display-lh: 1.4;
+  --type-number-display-weight: 500;
+
+  --type-button-size: 16px;
+  --type-button-weight: 600;
+  --type-button-lh: 1.15;
+  --type-nav-link-size: 14px;
+  --type-nav-link-weight: 500;
+  --type-nav-link-lh: 1.4;
+  --display-weight: 400;
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-hairline);
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-surface-soft);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
+}
+
+@keyframes fs-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes fs-slide {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes fs-spin {
+  to { transform: rotate(360deg); }
+}
+
+@layer utilities {
+  .fs-fade { animation: fs-fade 0.28s ease both; }
+  .fs-slide { animation: fs-slide 0.25s ease both; }
+  .fs-spin { animation: fs-spin 0.8s linear infinite; }
+}

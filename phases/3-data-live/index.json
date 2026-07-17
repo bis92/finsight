@@ -1,0 +1,48 @@
+{
+  "project": "finsight",
+  "phase": "3-data-live",
+  "steps": [
+    {
+      "step": 0,
+      "name": "transactions-repo-live",
+      "status": "completed",
+      "started_at": "2026-07-17T15:24:01+0900",
+      "summary": "user-scoped Supabase live transactions repository와 DB↔도메인 매핑, range/insert/reclassify 동작 및 팩토리 live 분기를 구현",
+      "completed_at": "2026-07-17T15:26:36+0900"
+    },
+    {
+      "step": 1,
+      "name": "uploads-storage-live",
+      "status": "completed",
+      "started_at": "2026-07-17T15:26:36+0900",
+      "summary": "비공개 uploads bucket과 소유 경로 RLS, 서명 URL Storage 헬퍼, user-scoped live uploads 서비스 및 팩토리 분기를 구현",
+      "completed_at": "2026-07-17T15:31:11+0900"
+    },
+    {
+      "step": 2,
+      "name": "upload-pipeline-live",
+      "status": "completed",
+      "started_at": "2026-07-17T15:31:12+0900",
+      "summary": "업로드 파이프라인 live 배선과 CSV 파싱→거래 저장→status 전이 및 안전한 에러 정책을 구현",
+      "completed_at": "2026-07-17T15:36:19+0900"
+    },
+    {
+      "step": 3,
+      "name": "profile-read-live",
+      "status": "completed",
+      "started_at": "2026-07-17T15:36:19+0900",
+      "summary": "user-scoped Supabase live profile 읽기 서비스와 DB→Profile 매핑, fail-closed Free 기본값 및 팩토리 live 분기를 구현",
+      "completed_at": "2026-07-17T15:38:56+0900"
+    },
+    {
+      "step": 4,
+      "name": "account-deletion",
+      "status": "completed",
+      "started_at": "2026-07-17T15:38:56+0900",
+      "summary": "DELETE /api/account의 user-scoped DB·Storage 완전삭제 시퀀스와 크로스테넌트 격리·안전한 오류 정책을 구현",
+      "completed_at": "2026-07-17T15:41:40+0900"
+    }
+  ],
+  "created_at": "2026-07-17T15:24:01+0900",
+  "completed_at": "2026-07-17T15:41:40+0900"
+}

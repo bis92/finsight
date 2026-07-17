@@ -1,0 +1,40 @@
+{
+  "project": "finsight",
+  "phase": "5-payment",
+  "steps": [
+    {
+      "step": 0,
+      "name": "polar-checkout",
+      "status": "completed",
+      "summary": "Polar SDK 클라이언트와 checkout 라우트를 추가하고 server-only env 및 metadata·externalCustomerId userId 매핑을 적용",
+      "started_at": "2026-07-17T15:56:02+0900",
+      "completed_at": "2026-07-17T15:59:02+0900"
+    },
+    {
+      "step": 1,
+      "name": "upgrade-flow",
+      "status": "completed",
+      "summary": "업그레이드 Modal을 /api/checkout에 배선하고 서버 profile.plan 게이팅을 유지한 채 success/cancel 대기 안내를 추가",
+      "started_at": "2026-07-17T15:59:02+0900",
+      "completed_at": "2026-07-17T16:01:35+0900"
+    },
+    {
+      "step": 2,
+      "name": "webhook-plan-sync",
+      "status": "completed",
+      "summary": "Polar raw body 서명 검증 후 checkout userId 또는 Polar 식별자 매핑으로 service-role에서 profiles.plan과 구독 식별자를 멱등 갱신",
+      "started_at": "2026-07-17T16:01:35+0900",
+      "completed_at": "2026-07-17T16:04:49+0900"
+    },
+    {
+      "step": 3,
+      "name": "plan-lifecycle",
+      "status": "completed",
+      "summary": "subscription.revoked 웹훅에서 service-role로 free 다운그레이드하고 canceled·uncanceled·past_due는 권한 유지하며 목표 상태 set으로 재수신 멱등 보장",
+      "started_at": "2026-07-17T16:04:50+0900",
+      "completed_at": "2026-07-17T16:07:04+0900"
+    }
+  ],
+  "created_at": "2026-07-17T15:56:02+0900",
+  "completed_at": "2026-07-17T16:07:04+0900"
+}
