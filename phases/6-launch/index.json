@@ -7,7 +7,8 @@
       "name": "live-switch",
       "status": "completed",
       "started_at": "2026-07-17T16:07:41+0900",
-      "summary": "4개 팩토리를 mock/live 구현체에 완전 배선하고 live 차단 throw를 제거했으며 mock 경로와 fail-closed 동작을 테스트로 고정"
+      "summary": "4개 팩토리를 mock/live 구현체에 완전 배선하고 live 차단 throw를 제거했으며 mock 경로와 fail-closed 동작을 테스트로 고정",
+      "completed_at": "2026-07-17T16:09:51+0900"
     },
     {
       "step": 1,
