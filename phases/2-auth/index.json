@@ -24,7 +24,7 @@
       "status": "completed",
       "started_at": "2026-07-17T15:19:14+0900",
       "summary": "profiles 자동 생성 트리거(plan=free·멱등·SECURITY DEFINER)를 추가하고 정적 계약 테스트로 검증",
-      "completed_at": "2026-07-17T15:20:27+0900"
+      "completed_at": "2026-07-17T15:21:01+0900"
     },
     {
       "step": 3,
