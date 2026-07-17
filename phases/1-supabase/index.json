@@ -7,7 +7,8 @@
       "name": "deps-env",
       "status": "completed",
       "started_at": "2026-07-17T15:04:31+0900",
-      "summary": "@supabase/supabase-js ^2.110.7·@supabase/ssr ^0.12.3 설치, Supabase env 접근자 3개 및 supabase/migrations 디렉토리 추가"
+      "summary": "@supabase/supabase-js ^2.110.7·@supabase/ssr ^0.12.3 설치, Supabase env 접근자 3개 및 supabase/migrations 디렉토리 추가",
+      "completed_at": "2026-07-17T15:06:34+0900"
     },
     {
       "step": 1,
