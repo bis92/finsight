@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 
 import { Card, Badge, Button, Modal, SubscriptionRow } from '@/components/ui'
 import { aggregate } from '@/lib/analysis'
+import { ApiError, apiClient } from '@/lib/apiClient'
 import { formatKrw } from '@/lib/format'
 import { useProReport } from '@/queries/analyses'
 import { useProfile } from '@/queries/profile'
@@ -25,12 +26,39 @@ function InsightText({ insight }: { insight: Insight }) {
   )
 }
 
-export function ProReportClient({ guest }: { guest: boolean }) {
+type ProReportClientProps = {
+  guest: boolean
+  navigate?: (url: string) => void
+}
+
+export function ProReportClient({
+  guest,
+  navigate = (url) => { window.location.href = url },
+}: ProReportClientProps) {
   const { profile, queryState: profileState } = useProfile()
   const isPro = !guest && profile?.plan === 'pro'
   const { report, queryState: reportState } = useProReport(PERIOD, isPro)
   const { transactions, queryState: transactionState } = useTransactions()
   const [upgradeOpen, setUpgradeOpen] = useState(false)
+  const [checkoutPending, setCheckoutPending] = useState(false)
+  const [checkoutError, setCheckoutError] = useState<Error | null>(null)
+  const checkoutStatus = typeof window === 'undefined'
+    ? null
+    : new URLSearchParams(window.location.search).get('checkout')
+
+  async function startCheckout() {
+    if (checkoutPending) return
+
+    setCheckoutPending(true)
+    setCheckoutError(null)
+    try {
+      const { url } = await apiClient.post<{ url: string }>('/api/checkout', {})
+      navigate(url)
+    } catch (error) {
+      setCheckoutError(error instanceof Error ? error : new Error(String(error)))
+      setCheckoutPending(false)
+    }
+  }
 
   const expenseSplit = useMemo(() => {
     const snapshot = aggregate(transactions, PERIOD)
@@ -50,6 +78,12 @@ export function ProReportClient({ guest }: { guest: boolean }) {
   if (!isPro) {
     return (
       <main className="fs-fade mx-auto max-w-container px-lg py-section text-left">
+        {checkoutStatus === 'success' && (
+          <p role="status" className="mb-lg rounded-md border border-hairline bg-surface-soft p-base text-body-sm text-body">결제가 확인되면 곧 Pro가 활성화됩니다. 활성화 상태는 서버에서 확인합니다.</p>
+        )}
+        {checkoutStatus === 'cancel' && (
+          <p role="status" className="mb-lg rounded-md border border-hairline bg-surface-soft p-base text-body-sm text-body">결제가 취소되었습니다. 플랜은 변경되지 않았습니다.</p>
+        )}
         <Card className="mx-auto max-w-2xl">
           <svg aria-hidden="true" className="h-8 w-8 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="5" y="10" width="14" height="10" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /></svg>
           <Badge variant="pro" className="mt-lg">OPUS 4.8</Badge>
@@ -64,8 +98,14 @@ export function ProReportClient({ guest }: { guest: boolean }) {
         <Modal open={upgradeOpen} title="Pro로 업그레이드" onClose={() => setUpgradeOpen(false)}>
           <p className="font-mono text-[28px] font-medium tabular-nums">₩9,900<span className="font-sans text-body-sm text-muted"> / 월</span></p>
           <ul className="mt-lg space-y-sm text-body-sm text-body"><li>지출 진단 리포트</li><li>맞춤 절감 제안 3건</li><li>정기구독 후보 탐지</li></ul>
-          <Button className="mt-xl w-full" onClick={() => setUpgradeOpen(false)}>Pro로 전환(데모)</Button>
-          <p className="mt-sm text-caption text-muted">Phase 0 데모에서는 결제나 플랜 변경이 일어나지 않습니다.</p>
+          <Button className="mt-xl w-full" disabled={checkoutPending} onClick={startCheckout}>
+            {checkoutPending ? '결제 페이지로 이동 중…' : '결제하고 Pro 시작하기'}
+          </Button>
+          {checkoutError && <p role="alert" className="mt-sm text-caption text-semantic-down">{checkoutError.message}</p>}
+          {checkoutError instanceof ApiError && checkoutError.status === 401 && (
+            <Link href="/login" className="mt-sm inline-block text-caption text-primary">로그인하기</Link>
+          )}
+          <p className="mt-sm text-caption text-muted">결제가 완료되면 확인 후 Pro가 활성화됩니다.</p>
         </Modal>
       </main>
     )

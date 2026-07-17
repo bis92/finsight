@@ -3,12 +3,14 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Plan, Transaction } from '@/types'
+import { apiClient } from '@/lib/apiClient'
 
 import { ProReportClient } from './ProReportClient'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
 const state = vi.hoisted(() => ({ plan: 'free' as Plan }))
+const post = vi.spyOn(apiClient, 'post')
 const transactions: Transaction[] = [
   { id: 'housing', userId: 'user', uploadId: 'upload', occurredOn: '2026-06-01', merchant: '관리비', amount: 200_000, direction: 'expense', category: '주거', raw: {} },
   { id: 'food', userId: 'user', uploadId: 'upload', occurredOn: '2026-06-02', merchant: '식당', amount: 300_000, direction: 'expense', category: '식비', raw: {} },
@@ -47,6 +49,8 @@ describe('ProReportClient', () => {
 
   beforeEach(() => {
     state.plan = 'free'
+    post.mockReset()
+    window.history.replaceState({}, '', '/pro')
     container = document.createElement('div')
     document.body.appendChild(container)
     root = createRoot(container)
@@ -86,5 +90,41 @@ describe('ProReportClient', () => {
     expect(container.textContent).toContain('<img src=x onerror=alert(1)>')
     expect(container.querySelector('img')).toBeNull()
     expect(container.querySelector('strong')?.textContent).toBe('고정비를 점검하세요.')
+  })
+
+  it('requests checkout once and redirects to the returned URL', async () => {
+    post.mockResolvedValue({ url: 'https://polar.sh/checkout/session' })
+    const navigate = vi.fn()
+    await act(async () => root.render(<ProReportClient guest={false} navigate={navigate} />))
+
+    const openModal = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Pro로 업그레이드'))
+    await act(async () => openModal?.click())
+    const checkout = Array.from(container.querySelectorAll('button')).find((button) => button.textContent === '결제하고 Pro 시작하기')
+    await act(async () => checkout?.click())
+
+    expect(post).toHaveBeenCalledWith('/api/checkout', {})
+    expect(navigate).toHaveBeenCalledWith('https://polar.sh/checkout/session')
+  })
+
+  it('shows the server message when checkout creation fails', async () => {
+    post.mockRejectedValue(new Error('결제 페이지를 만들 수 없습니다'))
+    await act(async () => root.render(<ProReportClient guest={false} />))
+
+    const openModal = Array.from(container.querySelectorAll('button')).find((button) => button.textContent?.includes('Pro로 업그레이드'))
+    await act(async () => openModal?.click())
+    const checkout = Array.from(container.querySelectorAll('button')).find((button) => button.textContent === '결제하고 Pro 시작하기')
+    await act(async () => checkout?.click())
+
+    expect(container.querySelector('[role="alert"]')?.textContent).toBe('결제 페이지를 만들 수 없습니다')
+  })
+
+  it('keeps the report gated by the server profile after checkout success', async () => {
+    window.history.replaceState({}, '', '/pro?checkout=success')
+    await act(async () => root.render(<ProReportClient guest={false} />))
+
+    expect(container.textContent).toContain('결제가 확인되면 곧 Pro가 활성화됩니다')
+    expect(container.textContent).toContain('Pro로 업그레이드 ₩9,900/월')
+    expect(container.textContent).not.toContain('넷플릭스')
+    expect(container.textContent).not.toContain('진단 1')
   })
 })
