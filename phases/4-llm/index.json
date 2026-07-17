@@ -16,7 +16,7 @@
       "status": "completed",
       "started_at": "2026-07-17T15:44:37+0900",
       "summary": "live mapColumns에 Sonnet 구조화 출력, 샘플 20행 제한, 매핑 인덱스·필수 누락·신뢰도 정합성 보정을 추가",
-      "completed_at": "2026-07-17T15:46:36+0900"
+      "completed_at": "2026-07-17T15:47:08+0900"
     },
     {
       "step": 2,
