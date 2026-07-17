@@ -33,3 +33,7 @@ export function getSupabaseAnonKey(): string {
 export function getSupabaseServiceRoleKey(): string {
   return getRequiredEnvironmentVariable('SUPABASE_SERVICE_ROLE_KEY')
 }
+
+export function getAnthropicApiKey(): string {
+  return getRequiredEnvironmentVariable('ANTHROPIC_API_KEY')
+}

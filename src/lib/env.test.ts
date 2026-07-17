@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 
 import {
+  getAnthropicApiKey,
   getDataSource,
   getSupabaseAnonKey,
   getSupabaseServiceRoleKey,
@@ -11,6 +12,7 @@ import {
 
 const originalDataSource = process.env.DATA_SOURCE
 const supabaseEnvironment = {
+  ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -34,6 +36,7 @@ describe('getDataSource', () => {
 })
 
 describe.each([
+  ['ANTHROPIC_API_KEY', getAnthropicApiKey],
   ['NEXT_PUBLIC_SUPABASE_URL', getSupabaseUrl],
   ['NEXT_PUBLIC_SUPABASE_ANON_KEY', getSupabaseAnonKey],
   ['SUPABASE_SERVICE_ROLE_KEY', getSupabaseServiceRoleKey],
