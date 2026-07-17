@@ -8,6 +8,7 @@ import { mockLlmService } from '@/services/mock/llm'
 import { getMockProfile } from '@/services/mock/profile'
 import { mockTransactionsRepository } from '@/services/mock/transactions'
 import { liveTransactionsRepository } from '@/services/live/transactions'
+import { listUploadsByUser } from '@/services/live/uploads'
 import { listMockUploadsByUser } from '@/services/mock/uploads'
 import {
   getLlmService,
@@ -132,12 +133,12 @@ describe('service factories', () => {
     expect(getUploadsService()).toBe(listMockUploadsByUser)
   })
 
-  it('selects only the implemented live transactions repository and keeps other services closed', () => {
+  it('selects implemented live data services and keeps other services closed', () => {
     process.env.DATA_SOURCE = 'live'
 
     expect(getTransactionsRepository()).toBe(liveTransactionsRepository)
     expect(() => getLlmService()).toThrowError('live not implemented')
     expect(() => getProfileService()).toThrowError('live not implemented')
-    expect(() => getUploadsService()).toThrowError('live not implemented')
+    expect(getUploadsService()).toBe(listUploadsByUser)
   })
 })

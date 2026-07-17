@@ -4,6 +4,7 @@ import 'server-only'
 import { getDataSource } from '@/lib/env'
 
 import { liveTransactionsRepository } from './live/transactions'
+import { listUploadsByUser } from './live/uploads'
 import { mockLlmService } from './mock/llm'
 import { getMockProfile } from './mock/profile'
 import { mockTransactionsRepository } from './mock/transactions'
@@ -33,8 +34,9 @@ export function getProfileService(): typeof getMockProfile {
 }
 
 export function getUploadsService(): typeof listMockUploadsByUser {
-  assertMockDataSource()
-  return listMockUploadsByUser
+  return getDataSource() === 'live'
+    ? listUploadsByUser
+    : listMockUploadsByUser
 }
 
 export type { LlmService, TransactionsRepository } from './types'
