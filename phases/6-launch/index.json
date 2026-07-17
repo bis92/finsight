@@ -16,7 +16,7 @@
       "status": "blocked",
       "started_at": "2026-07-17T16:09:51+0900",
       "blocked_reason": "계정 소유자가 Supabase 프로젝트와 NEXT_PUBLIC_SUPABASE_URL·NEXT_PUBLIC_SUPABASE_ANON_KEY·SUPABASE_SERVICE_ROLE_KEY, Anthropic ANTHROPIC_API_KEY, Polar POLAR_ACCESS_TOKEN·POLAR_WEBHOOK_SECRET·POLAR_PRODUCT_ID, Production NEXT_PUBLIC_SITE_URL을 발급·확정하고 Google OAuth 앱 및 Kakao 커스텀 OIDC 앱을 Supabase Auth에 등록한 뒤 모든 환경변수를 Vercel Production에 등록해야 함",
-      "blocked_at": "2026-07-17T16:11:22+0900"
+      "blocked_at": "2026-07-17T16:12:15+0900"
     },
     {
       "step": 2,

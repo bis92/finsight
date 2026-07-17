@@ -32,7 +32,8 @@
     },
     {
       "dir": "6-launch",
-      "status": "pending"
+      "status": "blocked",
+      "blocked_at": "2026-07-17T16:12:15+0900"
     }
   ]
 }
