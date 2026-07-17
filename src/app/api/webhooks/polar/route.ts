@@ -10,7 +10,14 @@ const ACTIVE_EVENT_TYPES = new Set([
   'order.paid',
 ])
 
-type ActiveEventData = {
+// Polar emits `subscription.canceled` when cancellation is scheduled, while the
+// subscription remains entitled through the current period. `subscription.uncanceled`
+// reverses that schedule, and `subscription.past_due` can still recover during retries.
+// Only `subscription.revoked` means access has actually ended (including exhausted
+// payment retries), so that is the sole downgrade trigger.
+const TERMINATED_EVENT_TYPES = new Set(['subscription.revoked'])
+
+type PlanEventData = {
   id?: string
   customerId?: string
   subscriptionId?: string | null
@@ -18,16 +25,16 @@ type ActiveEventData = {
   customer?: { externalId?: string | null }
 }
 
-type ActiveEvent = {
+type PlanEvent = {
   type: string
-  data: ActiveEventData
+  data: PlanEventData
 }
 
 function headerRecord(headers: Headers): Record<string, string> {
   return Object.fromEntries(headers.entries())
 }
 
-function mappedUserId(data: ActiveEventData): string | null {
+function mappedUserId(data: PlanEventData): string | null {
   const metadataUserId = data.metadata?.userId
   if (typeof metadataUserId === 'string' && metadataUserId.length > 0) {
     return metadataUserId
@@ -39,7 +46,7 @@ function mappedUserId(data: ActiveEventData): string | null {
     : null
 }
 
-function polarIds(event: ActiveEvent): {
+function polarIds(event: PlanEvent): {
   customerId: string | null
   subscriptionId: string | null
 } {
@@ -78,10 +85,15 @@ async function findUserByPolarIds(
   return null
 }
 
-async function activatePlan(event: ActiveEvent): Promise<void> {
+async function resolveUserId(event: PlanEvent): Promise<string | null> {
   const { customerId, subscriptionId } = polarIds(event)
-  const userId = mappedUserId(event.data)
+  return mappedUserId(event.data)
     ?? await findUserByPolarIds(customerId, subscriptionId)
+}
+
+async function activatePlan(event: PlanEvent): Promise<void> {
+  const { customerId, subscriptionId } = polarIds(event)
+  const userId = await resolveUserId(event)
 
   if (!userId) {
     console.warn('Polar webhook user mapping was not found')
@@ -100,9 +112,26 @@ async function activatePlan(event: ActiveEvent): Promise<void> {
   if (error) throw error
 }
 
+async function deactivatePlan(event: PlanEvent): Promise<void> {
+  const userId = await resolveUserId(event)
+
+  if (!userId) {
+    console.warn('Polar webhook user mapping was not found')
+    return
+  }
+
+  // Setting the target state (rather than toggling it) makes webhook retries safe.
+  const { error } = await createSupabaseServiceRoleClient()
+    .from('profiles')
+    .update({ plan: 'free' })
+    .eq('id', userId)
+
+  if (error) throw error
+}
+
 export async function POST(request: Request): Promise<Response> {
   const rawBody = await request.text()
-  let event: ActiveEvent
+  let event: PlanEvent
   let secret: string
 
   try {
@@ -116,7 +145,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    event = validateEvent(rawBody, headerRecord(request.headers), secret) as ActiveEvent
+    event = validateEvent(rawBody, headerRecord(request.headers), secret) as PlanEvent
   } catch (error) {
     console.warn('Polar webhook signature verification failed', error)
     return NextResponse.json(
@@ -128,6 +157,8 @@ export async function POST(request: Request): Promise<Response> {
   try {
     if (ACTIVE_EVENT_TYPES.has(event.type)) {
       await activatePlan(event)
+    } else if (TERMINATED_EVENT_TYPES.has(event.type)) {
+      await deactivatePlan(event)
     }
     return NextResponse.json({ received: true })
   } catch (error) {

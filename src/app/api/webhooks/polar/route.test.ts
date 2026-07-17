@@ -124,6 +124,58 @@ describe('POST /api/webhooks/polar', () => {
     })
   })
 
+  it('downgrades a mapped profile to free when a subscription is revoked', async () => {
+    mocks.validateEvent.mockReturnValue({
+      type: 'subscription.revoked',
+      data: {
+        id: 'subscription-1',
+        customerId: 'customer-1',
+        metadata: { userId: 'user-1' },
+        customer: { externalId: null },
+      },
+    })
+
+    const response = await POST(request('{}'))
+
+    expect(response.status).toBe(200)
+    expect(update).toHaveBeenCalledWith({ plan: 'free' })
+    expect(eq).toHaveBeenCalledWith('id', 'user-1')
+  })
+
+  it('keeps pro access when cancellation is only scheduled for period end', async () => {
+    mocks.validateEvent.mockReturnValue({
+      type: 'subscription.canceled',
+      data: {
+        id: 'subscription-1',
+        customerId: 'customer-1',
+        metadata: { userId: 'user-1' },
+      },
+    })
+
+    expect((await POST(request('{}'))).status).toBe(200)
+    expect(update).not.toHaveBeenCalled()
+  })
+
+  it('sets free idempotently when the same revoked event is delivered twice', async () => {
+    mocks.validateEvent.mockReturnValue({
+      type: 'subscription.revoked',
+      data: {
+        id: 'subscription-1',
+        customerId: 'customer-1',
+        metadata: {},
+        customer: { externalId: null },
+      },
+    })
+    maybeSingle.mockResolvedValue({ data: { id: 'user-1' }, error: null })
+
+    expect((await POST(request('{}'))).status).toBe(200)
+    expect((await POST(request('{}'))).status).toBe(200)
+
+    expect(update).toHaveBeenCalledTimes(2)
+    expect(update).toHaveBeenNthCalledWith(1, { plan: 'free' })
+    expect(update).toHaveBeenNthCalledWith(2, { plan: 'free' })
+  })
+
   it('does not update an arbitrary profile when no user mapping exists', async () => {
     mocks.validateEvent.mockReturnValue({
       type: 'subscription.active',
