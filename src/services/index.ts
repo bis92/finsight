@@ -3,6 +3,7 @@ import 'server-only'
 
 import { getDataSource } from '@/lib/env'
 
+import { getProfile } from './live/profile'
 import { liveTransactionsRepository } from './live/transactions'
 import { listUploadsByUser } from './live/uploads'
 import { mockLlmService } from './mock/llm'
@@ -29,8 +30,7 @@ export function getLlmService(): LlmService {
 }
 
 export function getProfileService(): typeof getMockProfile {
-  assertMockDataSource()
-  return getMockProfile
+  return getDataSource() === 'live' ? getProfile : getMockProfile
 }
 
 export function getUploadsService(): typeof listMockUploadsByUser {

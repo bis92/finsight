@@ -7,6 +7,7 @@ import { MOCK_TRANSACTIONS } from '@/services/mock/fixtures/transactions'
 import { mockLlmService } from '@/services/mock/llm'
 import { getMockProfile } from '@/services/mock/profile'
 import { mockTransactionsRepository } from '@/services/mock/transactions'
+import { getProfile } from '@/services/live/profile'
 import { liveTransactionsRepository } from '@/services/live/transactions'
 import { listUploadsByUser } from '@/services/live/uploads'
 import { listMockUploadsByUser } from '@/services/mock/uploads'
@@ -138,7 +139,7 @@ describe('service factories', () => {
 
     expect(getTransactionsRepository()).toBe(liveTransactionsRepository)
     expect(() => getLlmService()).toThrowError('live not implemented')
-    expect(() => getProfileService()).toThrowError('live not implemented')
+    expect(getProfileService()).toBe(getProfile)
     expect(getUploadsService()).toBe(listUploadsByUser)
   })
 })

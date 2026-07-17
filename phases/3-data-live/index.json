@@ -29,7 +29,10 @@
     {
       "step": 3,
       "name": "profile-read-live",
-      "status": "pending"
+      "status": "completed",
+      "started_at": "2026-07-17T15:36:19+0900",
+      "summary": "user-scoped Supabase live profile 읽기 서비스와 DB→Profile 매핑, fail-closed Free 기본값 및 팩토리 live 분기를 구현",
+      "completed_at": "2026-07-17T15:38:13+0900"
     },
     {
       "step": 4,
