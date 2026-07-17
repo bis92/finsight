@@ -29,7 +29,10 @@
     {
       "step": 3,
       "name": "stub-auth-retirement",
-      "status": "pending"
+      "status": "completed",
+      "started_at": "2026-07-17T15:21:01+0900",
+      "summary": "스텁 인증의 live fail-closed를 회귀 테스트로 고정하고 live Supabase 로그인 기본 경로와 게스트 읽기전용 데모 유지를 검증",
+      "completed_at": "2026-07-17T15:22:52+0900"
     }
   ],
   "created_at": "2026-07-17T15:13:33+0900"

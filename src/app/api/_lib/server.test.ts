@@ -36,4 +36,12 @@ describe('resolveCurrentUserId', () => {
       expect.objectContaining<ApiRouteError>({ status: 401 }),
     )
   })
+
+  it('resolves the authenticated Supabase user for live API access', async () => {
+    process.env.DATA_SOURCE = 'live'
+    getAuthenticatedUserIdMock.mockResolvedValue('live-user-123')
+
+    await expect(resolveCurrentUserId()).resolves.toBe('live-user-123')
+    expect(getAuthenticatedUserIdMock).toHaveBeenCalledOnce()
+  })
 })

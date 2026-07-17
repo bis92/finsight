@@ -63,4 +63,23 @@ describe('session middleware', () => {
 
     expect((await middleware(new NextRequest('http://localhost/pro'))).status).toBe(200)
   })
+
+  it('ignores a stub session cookie in live mode', async () => {
+    process.env.DATA_SOURCE = 'live'
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://project.supabase.co'
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon-key'
+    getUserMock.mockResolvedValue({ data: { user: null }, error: null })
+    createServerClientMock.mockReturnValue({ auth: { getUser: getUserMock } })
+    const request = new NextRequest('http://localhost/upload', {
+      headers: { cookie: 'finsight_stub_session=mock-free-user' },
+    })
+
+    const response = await middleware(request)
+
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe(
+      `http://localhost/login?next=${encodeURIComponent('/upload')}`,
+    )
+    expect(getUserMock).toHaveBeenCalledOnce()
+  })
 })
