@@ -102,7 +102,7 @@ class StepExecutor:
 
     @staticmethod
     def _write_json(p: Path, data: dict):
-        p.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+        p.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     # --- git ---
 
@@ -335,9 +335,12 @@ class StepExecutor:
                         s["blocked_at"] = ts
                 self._write_json(self._index_file, index)
                 reason = next((s.get("blocked_reason", "") for s in index["steps"] if s["step"] == step_num), "")
+                self._update_top_index("blocked")
+                # completed/error 분기와 동일하게 metadata를 커밋한다.
+                # 커밋하지 않으면 blocked 상태 write가 워킹트리에 남아 다음 세션에 노이즈가 된다.
+                self._commit_step(step_num, step_name)
                 print(f"  ⏸ Step {step_num}: {step_name} blocked [{elapsed}s]")
                 print(f"    Reason: {reason}")
-                self._update_top_index("blocked")
                 sys.exit(2)
 
             err_msg = next(
