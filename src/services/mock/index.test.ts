@@ -7,16 +7,7 @@ import { MOCK_TRANSACTIONS } from '@/services/mock/fixtures/transactions'
 import { mockLlmService } from '@/services/mock/llm'
 import { getMockProfile } from '@/services/mock/profile'
 import { mockTransactionsRepository } from '@/services/mock/transactions'
-import { getProfile } from '@/services/live/profile'
-import { liveTransactionsRepository } from '@/services/live/transactions'
-import { listUploadsByUser } from '@/services/live/uploads'
 import { listMockUploadsByUser } from '@/services/mock/uploads'
-import {
-  getLlmService,
-  getProfileService,
-  getTransactionsRepository,
-  getUploadsService,
-} from '@/services'
 import type { ColumnMappingInput } from '@/types'
 
 const mappingInput: ColumnMappingInput = {
@@ -123,23 +114,48 @@ describe('service factories', () => {
     } else {
       process.env.DATA_SOURCE = originalDataSource
     }
+    vi.resetModules()
   })
 
-  it('selects mock implementations by default', () => {
-    delete process.env.DATA_SOURCE
+  it('selects all mock implementations when DATA_SOURCE is mock', async () => {
+    process.env.DATA_SOURCE = 'mock'
+    vi.resetModules()
 
-    expect(getTransactionsRepository()).toBe(mockTransactionsRepository)
-    expect(getLlmService()).toBe(mockLlmService)
-    expect(getProfileService()).toBe(getMockProfile)
-    expect(getUploadsService()).toBe(listMockUploadsByUser)
+    const services = await import('@/services')
+    const { mockTransactionsRepository: transactions } = await import('@/services/mock/transactions')
+    const { mockLlmService: llm } = await import('@/services/mock/llm')
+    const { getMockProfile: profile } = await import('@/services/mock/profile')
+    const { listMockUploadsByUser: uploads } = await import('@/services/mock/uploads')
+
+    expect(services.getTransactionsRepository()).toBe(transactions)
+    expect(services.getLlmService()).toBe(llm)
+    expect(services.getProfileService()).toBe(profile)
+    expect(services.getUploadsService()).toBe(uploads)
   })
 
-  it('selects implemented live data services and keeps other services closed', () => {
+  it('selects all live implementations when DATA_SOURCE is live', async () => {
     process.env.DATA_SOURCE = 'live'
+    vi.resetModules()
 
-    expect(getTransactionsRepository()).toBe(liveTransactionsRepository)
-    expect(() => getLlmService()).toThrowError('live not implemented')
-    expect(getProfileService()).toBe(getProfile)
-    expect(getUploadsService()).toBe(listUploadsByUser)
+    const services = await import('@/services')
+    const { liveTransactionsRepository: transactions } = await import('@/services/live/transactions')
+    const { liveLlmService: llm } = await import('@/services/live/llm')
+    const { getProfile: profile } = await import('@/services/live/profile')
+    const { listUploadsByUser: uploads } = await import('@/services/live/uploads')
+
+    expect(services.getTransactionsRepository()).toBe(transactions)
+    expect(services.getLlmService()).toBe(llm)
+    expect(services.getProfileService()).toBe(profile)
+    expect(services.getUploadsService()).toBe(uploads)
+  })
+
+  it('fails closed when DATA_SOURCE is invalid', async () => {
+    process.env.DATA_SOURCE = 'invalid'
+    vi.resetModules()
+
+    const services = await import('@/services')
+
+    expect(() => services.getTransactionsRepository())
+      .toThrowError('DATA_SOURCE must be either "mock" or "live"')
   })
 })
