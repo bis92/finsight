@@ -29,7 +29,10 @@
     {
       "step": 3,
       "name": "subscriptions-live",
-      "status": "pending"
+      "status": "completed",
+      "started_at": "2026-07-17T15:49:41+0900",
+      "summary": "live detectSubscriptions 규칙우선·Opus보조·후보표현 요약",
+      "completed_at": "2026-07-17T15:52:17+0900"
     },
     {
       "step": 4,

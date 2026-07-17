@@ -15,7 +15,7 @@ vi.mock('@anthropic-ai/sdk', () => ({
 import { requiresManualMapping } from '@/lib/csv'
 import { OPUS, SONNET } from '@/lib/llm/client'
 import { liveLlmService } from '@/services/live/llm'
-import type { AggregateSnapshot } from '@/types'
+import type { AggregateSnapshot, Transaction } from '@/types'
 
 const snapshot: AggregateSnapshot = {
   period: '2026-06',
@@ -34,6 +34,19 @@ function mockJson(value: unknown) {
     stop_reason: 'end_turn',
     content: [{ type: 'text', text: JSON.stringify(value) }],
   })
+}
+
+function transaction(
+  overrides: Partial<Transaction> & Pick<Transaction, 'id' | 'occurredOn' | 'merchant' | 'amount'>,
+): Transaction {
+  return {
+    userId: 'user-1',
+    uploadId: 'upload-1',
+    direction: 'expense',
+    category: '기타',
+    raw: {},
+    ...overrides,
+  }
 }
 
 describe('liveLlmService.mapColumns', () => {
@@ -213,5 +226,111 @@ describe('liveLlmService.generateInsights', () => {
     expect(request.system).toContain('계산하지 마세요')
     expect(request.system).toContain('평문')
     expect(request.output_config.format.type).toBe('json_schema')
+  })
+})
+
+describe('liveLlmService.detectSubscriptions', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    process.env.ANTHROPIC_API_KEY = 'test-api-key'
+  })
+
+  it('keeps code-detected monthly and weekly cadence while using Opus only as an assistant', async () => {
+    const txns = [
+      transaction({ id: 'm1', occurredOn: '2026-04-10', merchant: '넷플릭스', amount: 13_500, category: '구독' }),
+      transaction({ id: 'm2', occurredOn: '2026-05-10', merchant: '넷플릭스', amount: 13_500, category: '구독' }),
+      transaction({ id: 'm3', occurredOn: '2026-06-10', merchant: '넷플릭스', amount: 13_500, category: '구독' }),
+      transaction({ id: 'w1', occurredOn: '2026-06-01', merchant: '주간 클래스', amount: 20_000 }),
+      transaction({ id: 'w2', occurredOn: '2026-06-08', merchant: '주간 클래스', amount: 20_000 }),
+      transaction({ id: 'w3', occurredOn: '2026-06-15', merchant: '주간 클래스', amount: 20_000 }),
+      transaction({ id: 'other', occurredOn: '2026-06-20', merchant: '일반 상점', amount: 99_000 }),
+    ]
+    mockJson({ candidates: [
+      { merchant: '넷플릭스', amount: 13_500, cadence: 'unknown', confidence: 0.99, lastSeenOn: '2099-01-01' },
+      { merchant: '주간 클래스', amount: 20_000, cadence: 'monthly', confidence: 0.9, lastSeenOn: '2099-01-01' },
+    ] })
+
+    const result = await liveLlmService.detectSubscriptions(txns)
+
+    expect(result.map(({ merchant, cadence }) => ({ merchant, cadence }))).toEqual([
+      { merchant: '넷플릭스', cadence: 'monthly' },
+      { merchant: '주간 클래스', cadence: 'weekly' },
+    ])
+    const request = messagesCreate.mock.calls[0][0]
+    expect(request.model).toBe(OPUS)
+    expect(request.output_config.format.type).toBe('json_schema')
+    expect(request.messages[0].content).not.toContain('일반 상점')
+    expect(request.system).toContain('판정하지 마세요')
+  })
+
+  it('keeps a single-month subscription as an uncertain unknown candidate without confirmation fields', async () => {
+    mockJson({ candidates: [{
+      merchant: '유튜브 프리미엄',
+      amount: 14_900,
+      cadence: 'monthly',
+      confidence: 1,
+      lastSeenOn: '2026-06-03',
+    }] })
+
+    const result = await liveLlmService.detectSubscriptions([
+      transaction({ id: '1', occurredOn: '2026-06-03', merchant: '유튜브 프리미엄', amount: 14_900, category: '구독' }),
+    ])
+
+    expect(result).toEqual([{
+      merchant: '유튜브 프리미엄',
+      amount: 14_900,
+      cadence: 'unknown',
+      confidence: 0.45,
+      lastSeenOn: '2026-06-03',
+    }])
+    expect(Object.keys(result[0] ?? {})).toEqual([
+      'merchant', 'amount', 'cadence', 'confidence', 'lastSeenOn',
+    ])
+  })
+
+  it('drops hallucinated merchants and replaces invented dates and malformed values with rule evidence', async () => {
+    mockJson({ candidates: [
+      { merchant: '넷플릭스', amount: -13_500.7, cadence: 'yearly', confidence: 4, lastSeenOn: '2099-12-31' },
+      { merchant: '가짜 구독 서비스', amount: 10_000, cadence: 'monthly', confidence: 1, lastSeenOn: '2026-06-30' },
+    ] })
+    const txns = [
+      transaction({ id: '1', occurredOn: '2026-05-10', merchant: '넷플릭스', amount: 13_500, category: '구독' }),
+      transaction({ id: '2', occurredOn: '2026-06-10', merchant: '넷플릭스', amount: 13_900, category: '구독' }),
+    ]
+
+    const result = await liveLlmService.detectSubscriptions(txns)
+    expect(result).toEqual([{
+      merchant: '넷플릭스',
+      amount: 13_700,
+      cadence: 'monthly',
+      confidence: expect.closeTo(0.88),
+      lastSeenOn: '2026-06-10',
+    }])
+  })
+
+  it('returns no candidates and does not call Claude when input or rule candidates are empty', async () => {
+    await expect(liveLlmService.detectSubscriptions([])).resolves.toEqual([])
+    await expect(liveLlmService.detectSubscriptions([
+      transaction({ id: '1', occurredOn: '2026-06-01', merchant: '일반 상점', amount: 10_000 }),
+    ])).resolves.toEqual([])
+    expect(messagesCreate).not.toHaveBeenCalled()
+  })
+
+  it('falls back to deterministic rule candidates when the LLM assistant fails', async () => {
+    messagesCreate.mockRejectedValue(new Error('sdk failure'))
+    const txns = [
+      transaction({ id: '1', occurredOn: '2026-05-10', merchant: '넷플릭스', amount: 13_500, category: '구독' }),
+      transaction({ id: '2', occurredOn: '2026-06-10', merchant: '넷플릭스', amount: 13_500, category: '구독' }),
+    ]
+
+    const result = await liveLlmService.detectSubscriptions(txns)
+
+    expect(result).toEqual([{
+      merchant: '넷플릭스',
+      amount: 13_500,
+      cadence: 'monthly',
+      confidence: expect.closeTo(0.88),
+      lastSeenOn: '2026-06-10',
+    }])
   })
 })
