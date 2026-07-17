@@ -7,7 +7,8 @@
       "name": "transactions-repo-live",
       "status": "completed",
       "started_at": "2026-07-17T15:24:01+0900",
-      "summary": "user-scoped Supabase live transactions repository와 DB↔도메인 매핑, range/insert/reclassify 동작 및 팩토리 live 분기를 구현"
+      "summary": "user-scoped Supabase live transactions repository와 DB↔도메인 매핑, range/insert/reclassify 동작 및 팩토리 live 분기를 구현",
+      "completed_at": "2026-07-17T15:26:36+0900"
     },
     {
       "step": 1,
