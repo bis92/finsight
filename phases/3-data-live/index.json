@@ -1,0 +1,11 @@
+{
+  "project": "finsight",
+  "phase": "3-data-live",
+  "steps": [
+    { "step": 0, "name": "transactions-repo-live", "status": "pending" },
+    { "step": 1, "name": "uploads-storage-live", "status": "pending" },
+    { "step": 2, "name": "upload-pipeline-live", "status": "pending" },
+    { "step": 3, "name": "profile-read-live", "status": "pending" },
+    { "step": 4, "name": "account-deletion", "status": "pending" }
+  ]
+}

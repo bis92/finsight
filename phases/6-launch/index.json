@@ -1,0 +1,10 @@
+{
+  "project": "finsight",
+  "phase": "6-launch",
+  "steps": [
+    { "step": 0, "name": "live-switch", "status": "pending" },
+    { "step": 1, "name": "env-secrets", "status": "pending" },
+    { "step": 2, "name": "deploy-script", "status": "pending" },
+    { "step": 3, "name": "e2e-smoke", "status": "pending" }
+  ]
+}

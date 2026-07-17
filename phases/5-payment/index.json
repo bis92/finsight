@@ -1,0 +1,10 @@
+{
+  "project": "finsight",
+  "phase": "5-payment",
+  "steps": [
+    { "step": 0, "name": "polar-checkout", "status": "pending" },
+    { "step": 1, "name": "upgrade-flow", "status": "pending" },
+    { "step": 2, "name": "webhook-plan-sync", "status": "pending" },
+    { "step": 3, "name": "plan-lifecycle", "status": "pending" }
+  ]
+}

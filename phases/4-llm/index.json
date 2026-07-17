@@ -1,0 +1,11 @@
+{
+  "project": "finsight",
+  "phase": "4-llm",
+  "steps": [
+    { "step": 0, "name": "llm-client", "status": "pending" },
+    { "step": 1, "name": "map-columns-live", "status": "pending" },
+    { "step": 2, "name": "insights-live", "status": "pending" },
+    { "step": 3, "name": "subscriptions-live", "status": "pending" },
+    { "step": 4, "name": "upload-cap", "status": "pending" }
+  ]
+}

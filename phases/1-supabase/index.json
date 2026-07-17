@@ -1,0 +1,10 @@
+{
+  "project": "finsight",
+  "phase": "1-supabase",
+  "steps": [
+    { "step": 0, "name": "deps-env", "status": "pending" },
+    { "step": 1, "name": "schema-migrations", "status": "pending" },
+    { "step": 2, "name": "rls-policies", "status": "pending" },
+    { "step": 3, "name": "db-types-clients", "status": "pending" }
+  ]
+}

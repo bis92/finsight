@@ -1,0 +1,10 @@
+{
+  "project": "finsight",
+  "phase": "2-auth",
+  "steps": [
+    { "step": 0, "name": "oauth-callback", "status": "pending" },
+    { "step": 1, "name": "session-middleware", "status": "pending" },
+    { "step": 2, "name": "profile-provisioning", "status": "pending" },
+    { "step": 3, "name": "stub-auth-retirement", "status": "pending" }
+  ]
+}
