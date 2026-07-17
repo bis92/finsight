@@ -5,11 +5,30 @@
       "status": "completed",
       "completed_at": "2026-07-14T22:43:41+0900"
     },
-    { "dir": "1-supabase", "status": "pending" },
-    { "dir": "2-auth", "status": "pending" },
-    { "dir": "3-data-live", "status": "pending" },
-    { "dir": "4-llm", "status": "pending" },
-    { "dir": "5-payment", "status": "pending" },
-    { "dir": "6-launch", "status": "pending" }
+    {
+      "dir": "1-supabase",
+      "status": "completed",
+      "completed_at": "2026-07-17T15:12:34+0900"
+    },
+    {
+      "dir": "2-auth",
+      "status": "pending"
+    },
+    {
+      "dir": "3-data-live",
+      "status": "pending"
+    },
+    {
+      "dir": "4-llm",
+      "status": "pending"
+    },
+    {
+      "dir": "5-payment",
+      "status": "pending"
+    },
+    {
+      "dir": "6-launch",
+      "status": "pending"
+    }
   ]
 }
