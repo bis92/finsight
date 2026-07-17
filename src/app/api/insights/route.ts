@@ -8,7 +8,7 @@ import {
 } from '@/services'
 
 import {
-  CURRENT_USER_ID,
+  resolveCurrentUserId,
   periodRange,
   requirePeriod,
   withErrorBoundary,
@@ -17,9 +17,10 @@ import {
 export async function GET(request: Request): Promise<Response> {
   return withErrorBoundary(async () => {
     const period = requirePeriod(request.url)
+    const userId = await resolveCurrentUserId()
     const [transactions, profile] = await Promise.all([
-      getTransactionsRepository().listByUser(CURRENT_USER_ID, periodRange(period)),
-      getProfileService()(CURRENT_USER_ID),
+      getTransactionsRepository().listByUser(userId, periodRange(period)),
+      getProfileService()(userId),
     ])
     const snapshot = aggregate(transactions, period)
     const insights = await getLlmService().generateInsights(snapshot, profile.plan)

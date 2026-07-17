@@ -9,7 +9,7 @@ import {
 
 import {
   ApiRouteError,
-  CURRENT_USER_ID,
+  resolveCurrentUserId,
   periodRange,
   requirePeriod,
   withErrorBoundary,
@@ -18,13 +18,14 @@ import {
 export async function GET(request: Request): Promise<Response> {
   return withErrorBoundary(async () => {
     const period = requirePeriod(request.url)
-    const profile = await getProfileService()(CURRENT_USER_ID)
+    const userId = await resolveCurrentUserId()
+    const profile = await getProfileService()(userId)
     if (profile.plan !== 'pro') {
       throw new ApiRouteError(403, 'Pro 전용 기능입니다')
     }
 
     const transactions = await getTransactionsRepository().listByUser(
-      CURRENT_USER_ID,
+      userId,
       periodRange(period),
     )
     const snapshot = aggregate(transactions, period)

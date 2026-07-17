@@ -4,7 +4,7 @@ import { getTransactionsRepository } from '@/services'
 
 import {
   ApiRouteError,
-  CURRENT_USER_ID,
+  resolveCurrentUserId,
   isCategory,
   isRecord,
   readJson,
@@ -31,7 +31,7 @@ export async function PATCH(
     }
 
     const transaction = await getTransactionsRepository().reclassify(
-      CURRENT_USER_ID,
+      await resolveCurrentUserId(),
       id,
       body.category,
     )

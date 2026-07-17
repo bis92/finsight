@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { getTransactionsRepository } from '@/services'
 
 import {
-  CURRENT_USER_ID,
+  resolveCurrentUserId,
   optionalDateRange,
   withErrorBoundary,
 } from '../_lib/server'
@@ -11,8 +11,9 @@ import {
 export async function GET(request: Request): Promise<Response> {
   return withErrorBoundary(async () => {
     const range = optionalDateRange(request.url)
+    const userId = await resolveCurrentUserId()
     const transactions = await getTransactionsRepository().listByUser(
-      CURRENT_USER_ID,
+      userId,
       range,
     )
     return NextResponse.json({ transactions })

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+import { getAuthenticatedUserId } from '@/lib/auth/session'
+import { getDataSource } from '@/lib/env'
 import { CATEGORIES } from '@/types'
 import type {
   Category,
@@ -8,7 +10,7 @@ import type {
   NewTransaction,
 } from '@/types'
 
-export const CURRENT_USER_ID = 'mock-free-user'
+const MOCK_CURRENT_USER_ID = 'mock-free-user'
 export const INTERNAL_ERROR_MESSAGE = '일시적인 오류가 발생했습니다'
 
 export class ApiRouteError extends Error {
@@ -19,6 +21,19 @@ export class ApiRouteError extends Error {
     super(message)
     this.name = 'ApiRouteError'
   }
+}
+
+export async function resolveCurrentUserId(): Promise<string> {
+  if (getDataSource() === 'mock') {
+    return MOCK_CURRENT_USER_ID
+  }
+
+  const userId = await getAuthenticatedUserId()
+  if (!userId) {
+    throw new ApiRouteError(401, '인증이 필요합니다')
+  }
+
+  return userId
 }
 
 export function isRecord(value: unknown): value is Record<string, unknown> {

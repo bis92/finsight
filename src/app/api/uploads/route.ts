@@ -4,7 +4,7 @@ import { getTransactionsRepository, getUploadsService } from '@/services'
 
 import {
   ApiRouteError,
-  CURRENT_USER_ID,
+  resolveCurrentUserId,
   isRecord,
   readJson,
   requireConfirmedMapping,
@@ -20,7 +20,8 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     requireConfirmedMapping(body.mapping)
-    const uploads = await getUploadsService()(CURRENT_USER_ID)
+    const userId = await resolveCurrentUserId()
+    const uploads = await getUploadsService()(userId)
     const upload = uploads[0]
     if (!upload) {
       throw new Error('Upload was not found before inserting transactions')
@@ -31,7 +32,7 @@ export async function POST(request: Request): Promise<Response> {
         : transaction)
       : body.transactions
     const transactions = requireTransactions(submitted)
-    await getTransactionsRepository().insertMany(CURRENT_USER_ID, transactions)
+    await getTransactionsRepository().insertMany(userId, transactions)
 
     return NextResponse.json(upload, { status: 201 })
   })
