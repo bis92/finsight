@@ -16,7 +16,7 @@
       "status": "completed",
       "summary": "업그레이드 Modal을 /api/checkout에 배선하고 서버 profile.plan 게이팅을 유지한 채 success/cancel 대기 안내를 추가",
       "started_at": "2026-07-17T15:59:02+0900",
-      "completed_at": "2026-07-17T16:01:02+0900"
+      "completed_at": "2026-07-17T16:01:35+0900"
     },
     {
       "step": 2,
