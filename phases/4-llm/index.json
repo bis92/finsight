@@ -24,7 +24,7 @@
       "status": "completed",
       "started_at": "2026-07-17T15:47:08+0900",
       "summary": "live generateInsights에 플랜별 모델 분기, 코드 집계 근거 프롬프트, 평문 Insight 스키마 검증과 금액 정규화를 추가",
-      "completed_at": "2026-07-17T15:49:08+0900"
+      "completed_at": "2026-07-17T15:49:41+0900"
     },
     {
       "step": 3,
