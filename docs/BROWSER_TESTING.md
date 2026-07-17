@@ -10,7 +10,21 @@
 - **모드**: `DATA_SOURCE=mock` (실 인프라·시크릿 불필요). mock repository는 **결정적 fixture**를 반환하므로,
   업로드한 CSV 내용과 무관하게 대시보드 숫자는 항상 동일하다(ADR-008). 숫자가 바뀌길 기대하지 마라.
 - **도구**: [`dev-browser`](https://www.npmjs.com/package/dev-browser) — 샌드박스 JS로 브라우저 제어.
-- **포트**: `next dev`는 3000이 점유돼 있으면 **3002 등으로 자동 이동**한다. 기동 로그의 `Local:` 줄에서 실제 포트를 확인하고 아래 스크립트의 포트를 맞춰라.
+- **포트**: `next dev`는 3000이 비어 있으면 3000, 점유돼 있으면 **3001/3002 등으로 자동 이동**한다. 기동 로그의 `Local:` 줄에서 실제 포트를 확인하고 아래 스크립트의 포트를 맞춰라.
+- **인증 순서(중요)**: `/upload`·`/dashboard`·`/pro`는 미인증 시 **`/login`으로 307 리다이렉트**된다(phase 2 세션 미들웨어). 따라서 **UC2 로그인을 UC3~UC5보다 먼저** 실행해야 한다. 예외는 게스트 대시보드 `/dashboard?guest=1`(미인증 200). 스텁 세션 쿠키는 같은 dev-browser 브라우저(`--browser finsight`) 컨텍스트에 유지된다.
+- **안정화**: Next dev는 콜드 컴파일·HMR 시 devtools(`segment-explorer-node`) RSC 오류로 **간헐적으로 렌더가 비어** `h1`이 안 뜰 수 있다(앱 버그 아님). 아래 **재시도 래퍼**를 쓰고, 반복되면 `pkill -f "next dev"; rm -rf .next` 후 재기동한다.
+
+```js
+// 렌더 flakiness 대비 재시도 래퍼
+async function go(path, sel = "h1"){
+  for (let i=0;i<3;i++){
+    await page.goto(B+path,{waitUntil:"networkidle"});
+    try { await page.waitForSelector(sel,{timeout:12000}); await page.waitForTimeout(600); return true; }
+    catch(e){ await page.waitForTimeout(1000); }
+  }
+  return false;
+}
+```
 
 ## 셋업
 
@@ -35,16 +49,25 @@ dev-browser 샌드박스에는 `fs`/`Buffer`/`TextEncoder`가 없어 **Playwrigh
 반드시 브라우저 컨텍스트에서 `File` + `DataTransfer`로 주입한다. 업로드 input은 `sr-only` 숨김 상태이며
 `onChange`로 파일을 받는다(파일 선택 후 자동 이동이 아니라 **"컬럼 확인하기 →" 버튼**을 눌러야 매핑으로 넘어감).
 
+**하이드레이션 대기 필수**: 페이지 로드 직후 주입하면 React `onChange`가 아직 안 붙어 **이벤트가 무시된다**(파일은 들어가지만 "파싱 완료"가 안 뜸). `waitUntil:"networkidle"` + `waitForTimeout(1500)` 후 주입하고, 안 되면 재주입한다.
+
 ```js
+await page.goto(B+"/upload",{waitUntil:"networkidle"});
+await page.waitForSelector("input[type=file]",{timeout:12000});
+await page.waitForTimeout(1500);                        // 하이드레이션 대기
 const content = await readFile("sample.csv");          // ~/.dev-browser/tmp/sample.csv
-await page.evaluate((csv) => {
+const inject = () => page.evaluate((csv) => {
   const input = document.querySelector("input[type=file]");
   const file = new File([csv], "sample-shinhan.csv", { type: "text/csv" });
   const dt = new DataTransfer();
   dt.items.add(file);
   input.files = dt.files;
+  input.dispatchEvent(new Event("input", { bubbles: true }));
   input.dispatchEvent(new Event("change", { bubbles: true }));
 }, content);
+await inject();
+// "파싱 완료" 안 뜨면 최대 3회 재주입
+for (let i=0;i<3;i++){ try{ await page.getByText("파싱 완료").waitFor({timeout:4000}); break; }catch(e){ await inject(); await page.waitForTimeout(1500); } }
 ```
 
 ---
