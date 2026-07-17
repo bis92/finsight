@@ -24,7 +24,7 @@
       "status": "completed",
       "started_at": "2026-07-17T15:08:17+0900",
       "summary": "5개 테이블 RLS 활성화·사용자별 CRUD 정책 적용·profiles plan 사용자 갱신 차단",
-      "completed_at": "2026-07-17T15:09:13+0900"
+      "completed_at": "2026-07-17T15:09:42+0900"
     },
     {
       "step": 3,
