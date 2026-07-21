@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 
-import { Amount, Badge, Card, Footer, TopNav } from '@/components/ui'
+import { Badge, Card, Footer, ThemeToggle, TopNav } from '@/components/ui'
+import { HeroAnalysis } from '@/components/landing/HeroAnalysis'
 
 type IconProps = { className?: string }
 
@@ -56,6 +57,7 @@ export default function HomePage() {
               <a href="#pricing" className="text-nav font-nav text-body hover:text-ink">요금제</a>
               <a href="#security" className="text-nav font-nav text-body hover:text-ink">보안</a>
             </div>
+            <ThemeToggle />
             <Link href="/login" className="text-nav font-nav text-body hover:text-ink">로그인</Link>
             <Link href="/login" className="inline-flex min-h-11 items-center rounded-pill bg-primary px-md text-button font-button text-on-primary hover:bg-primary-active">시작하기</Link>
           </>
@@ -88,19 +90,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="relative min-h-[380px]" aria-label="대시보드 미리보기">
-              <div className="absolute left-0 top-4 w-[78%] rounded-xl border border-white/10 bg-surface-dark-elevated p-xl shadow-[0_24px_60px_rgba(0,0,0,.45)]">
-                <p className="text-caption text-on-dark-soft">2026년 6월 총지출</p>
-                <Amount value={1847620} direction="expense" className="mt-sm block text-[32px] text-on-dark" />
-                <div className="mt-xl h-2 overflow-hidden rounded-pill bg-white/10"><div className="h-full w-3/5 bg-primary" /></div>
-                <p className="mt-sm text-caption text-on-dark-soft">식비와 쇼핑이 전체 지출의 48%예요.</p>
-              </div>
-              <div className="absolute bottom-4 right-0 w-[82%] rounded-xl border border-white/10 bg-canvas p-xl text-ink shadow-[0_24px_60px_rgba(0,0,0,.45)]">
-                <div className="flex items-center justify-between"><p className="text-caption text-muted">지출 진단</p><Badge variant="pro">OPUS 4.8</Badge></div>
-                <p className="mt-lg text-title-md font-title-md">고정비보다 변동비를 먼저 살펴보세요.</p>
-                <p className="mt-sm text-body-sm leading-6 text-body">반복되는 배달·쇼핑 지출에서 조정 가능한 항목이 보여요.</p>
-              </div>
-            </div>
+            <HeroAnalysis />
           </div>
         </section>
 

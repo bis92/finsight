@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 
 import { cn } from './styles'
+import { ThemeToggle } from './ThemeToggle'
 
 export function Wordmark({ className }: { className?: string }) {
   return <span className={cn('font-display text-title-md font-display text-primary', className)}>finsight</span>
@@ -16,6 +17,7 @@ export function TopNav({ actions, className }: { actions?: ReactNode; className?
           {actions ?? (
             <>
               <Link href="/upload" className="text-nav font-nav text-body hover:text-ink">파일 업로드</Link>
+              <ThemeToggle />
               <Link href="/pro" className="inline-flex min-h-11 items-center rounded-pill bg-primary px-md text-button font-button text-on-primary hover:bg-primary-active">Pro 리포트</Link>
             </>
           )}
