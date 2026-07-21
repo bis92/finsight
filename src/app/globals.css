@@ -116,6 +116,37 @@
   --display-weight: 400;
 }
 
+/* 다크 테마 — data-theme='dark' 일 때 색 토큰만 오버라이드(전역 자동 적용) */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-primary: #4d82ff;
+  --color-primary-active: #6b96ff;
+  --color-primary-disabled: #33415c;
+  --color-accent-yellow: #f4b000;
+
+  --color-canvas: #0a0b0d;
+  --color-surface-soft: #131519;
+  --color-surface-strong: #1e2127;
+  --color-surface-dark: #050608;
+  --color-surface-dark-elevated: #16181c;
+
+  --color-hairline: #2a2e37;
+  --color-hairline-soft: #23262d;
+
+  --color-ink: #f2f4f7;
+  --color-body: #b4b9c2;
+  --color-body-strong: #f2f4f7;
+  --color-muted: #8b919b;
+  --color-muted-soft: #6b717b;
+  --color-on-primary: #ffffff;
+  --color-on-dark: #ffffff;
+  --color-on-dark-soft: #a8acb3;
+
+  --color-semantic-up: #22c17e;
+  --color-semantic-down: #f2555f;
+}
+
 @layer base {
   *,
   ::before,
@@ -132,6 +163,14 @@
     background: var(--color-surface-soft);
     color: var(--color-ink);
     font-family: var(--font-sans);
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+}
+
+/* 테마 전환 애니메이션은 모션 최소화 사용자에게는 끈다 */
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none;
   }
 }
 
