@@ -4,15 +4,11 @@ import { getAuthenticatedUserId } from '@/lib/auth/session'
 import { applyMapping, decodeCsv, detectEncoding, parseCsv } from '@/lib/csv'
 import { getDataSource } from '@/lib/env'
 import { createSignedUploadUrl, uploadObjectPath } from '@/lib/supabase/storage'
-import {
-  FREE_UPLOAD_CAP_MESSAGE,
-  getUtcMonthRange,
-  isUploadAllowed,
-} from '@/lib/upload-cap'
-import { getProfileService, getTransactionsRepository, getUploadsService } from '@/services'
-import { countUploadsInRange, createUpload, setUploadStatus } from '@/services/live/uploads'
+import { getTransactionsRepository, getUploadsService } from '@/services'
+import { createUpload, setUploadStatus } from '@/services/live/uploads'
 import type { ColumnMappingResult } from '@/types'
 
+import { enforceLiveUploadCap } from '../_lib/upload-guard'
 import {
   ApiRouteError,
   INTERNAL_ERROR_MESSAGE,
@@ -39,7 +35,11 @@ async function postMockUpload(request: Request): Promise<Response> {
       throw new ApiRouteError(400, '업로드 요청 데이터가 유효하지 않습니다')
     }
 
-    requireConfirmedMapping(body.mapping)
+    // PDF uploads carry Claude-extracted transactions and have no column mapping;
+    // CSV uploads must present a confirmed mapping.
+    if (body.source !== 'pdf') {
+      requireConfirmedMapping(body.mapping)
+    }
     const userId = await resolveCurrentUserId()
     const uploads = await getUploadsService()(userId)
     const upload = uploads[0]
@@ -100,24 +100,6 @@ async function postLiveUpload(request: Request): Promise<Response> {
       throw error
     }
   })
-}
-
-async function enforceLiveUploadCap(userId: string, now: Date): Promise<void> {
-  // Polar webhook이 갱신한 서버 profiles.plan만 신뢰한다.
-  const profile = await getProfileService()(userId)
-  if (profile.plan === 'pro') {
-    return
-  }
-
-  const { start, end } = getUtcMonthRange(now)
-  const uploadsThisMonth = await countUploadsInRange(
-    userId,
-    start.toISOString(),
-    end.toISOString(),
-  )
-  if (!isUploadAllowed({ plan: profile.plan, uploadsThisMonth })) {
-    throw new ApiRouteError(402, FREE_UPLOAD_CAP_MESSAGE)
-  }
 }
 
 async function readUploadForm(request: Request): Promise<FormData> {

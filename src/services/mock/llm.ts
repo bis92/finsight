@@ -2,6 +2,7 @@
 import 'server-only'
 
 import { detectSubscriptions } from '@/lib/analysis'
+import { normalizeExtractedTransactions } from '@/lib/pdf'
 import type {
   AggregateSnapshot,
   ColumnMappingInput,
@@ -138,9 +139,23 @@ function proInsights(agg: AggregateSnapshot): Insight[] {
   ]
 }
 
+// Deterministic stand-in for Claude PDF extraction. Normalized through the same
+// pure logic as the live path so callers see identical shapes across data sources.
+const MOCK_PDF_ROWS = [
+  { occurredOn: '2026-06-02', merchant: '배달의민족', amount: 23900, direction: 'expense' },
+  { occurredOn: '2026-06-04', merchant: '스타벅스', amount: 4500, direction: 'expense' },
+  { occurredOn: '2026-06-09', merchant: 'GS25 편의점', amount: 8200, direction: 'expense' },
+  { occurredOn: '2026-06-15', merchant: '넷플릭스', amount: 13500, direction: 'expense' },
+  { occurredOn: '2026-06-25', merchant: '급여', amount: 3_200_000, direction: 'income' },
+]
+
 export const mockLlmService: LlmService = {
   async mapColumns(input) {
     return mapColumns(input)
+  },
+
+  async extractTransactions() {
+    return normalizeExtractedTransactions({ transactions: MOCK_PDF_ROWS })
   },
 
   async generateInsights(agg, plan) {

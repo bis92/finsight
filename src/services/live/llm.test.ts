@@ -167,6 +167,52 @@ describe('liveLlmService.mapColumns', () => {
   })
 })
 
+describe('liveLlmService.extractTransactions', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    process.env.ANTHROPIC_API_KEY = 'test-api-key'
+  })
+
+  it('sends the PDF as a document block to Sonnet and normalizes the extraction', async () => {
+    mockJson({ transactions: [
+      { occurredOn: '2026-06-01', merchant: '배달의민족', amount: 23900, direction: 'expense' },
+      { occurredOn: '2026-06-05', merchant: '급여', amount: 3_000_000, direction: 'income' },
+    ] })
+
+    const result = await liveLlmService.extractTransactions({
+      fileName: 'statement.pdf',
+      dataBase64: 'JVBERi0=',
+    })
+
+    expect(result).toEqual([
+      { uploadId: '', occurredOn: '2026-06-01', merchant: '배달의민족', amount: 23900, direction: 'expense', category: '기타', raw: {} },
+      { uploadId: '', occurredOn: '2026-06-05', merchant: '급여', amount: 3_000_000, direction: 'income', category: '수입', raw: {} },
+    ])
+
+    const request = messagesCreate.mock.calls[0][0]
+    expect(request.model).toBe(SONNET)
+    expect(request.output_config.format.type).toBe('json_schema')
+    expect(request.messages[0].content[0]).toEqual({
+      type: 'document',
+      source: { type: 'base64', media_type: 'application/pdf', data: 'JVBERi0=' },
+    })
+    expect(request.system).toContain('신뢰할 수 없는')
+  })
+
+  it('drops malformed rows returned by the model', async () => {
+    mockJson({ transactions: [
+      { occurredOn: 'bad-date', merchant: 'A', amount: 100, direction: 'expense' },
+      { occurredOn: '2026-06-01', merchant: '유효', amount: 500, direction: 'expense' },
+    ] })
+
+    const result = await liveLlmService.extractTransactions({ fileName: 'x.pdf', dataBase64: 'JVBERi0=' })
+
+    expect(result).toEqual([
+      { uploadId: '', occurredOn: '2026-06-01', merchant: '유효', amount: 500, direction: 'expense', category: '기타', raw: {} },
+    ])
+  })
+})
+
 describe('liveLlmService.generateInsights', () => {
   beforeEach(() => {
     vi.clearAllMocks()

@@ -7,18 +7,25 @@ import type {
   ColumnMappingInput,
   ColumnMappingResult,
   NewTransaction,
+  PdfExtractionInput,
   Upload,
 } from '@/types'
 
-export type ConfirmUploadInput = {
-  mapping: ColumnMappingResult['mapping']
-  transactions: NewTransaction[]
-}
+export type ConfirmUploadInput =
+  | { source?: 'csv'; mapping: ColumnMappingResult['mapping']; transactions: NewTransaction[] }
+  | { source: 'pdf'; transactions: NewTransaction[] }
 
 export function useMappingPreview() {
   return useMutation({
     mutationFn: (input: ColumnMappingInput) =>
       apiClient.post<ColumnMappingResult>('/api/uploads/mapping', input),
+  })
+}
+
+export function useExtractPdf() {
+  return useMutation({
+    mutationFn: (input: PdfExtractionInput) =>
+      apiClient.post<NewTransaction[]>('/api/uploads/extract', input),
   })
 }
 

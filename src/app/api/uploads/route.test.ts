@@ -189,4 +189,29 @@ describe('POST /api/uploads', () => {
     expect(mocks.getProfile).not.toHaveBeenCalled()
     expect(mocks.countUploadsThisMonth).not.toHaveBeenCalled()
   })
+
+  it('commits PDF-extracted transactions without a column mapping', async () => {
+    mocks.getDataSource.mockReturnValue('mock')
+    const transaction = {
+      uploadId: '',
+      occurredOn: '2026-06-01',
+      merchant: '배달의민족',
+      amount: 23_900,
+      direction: 'expense',
+      category: '기타',
+      raw: {},
+    }
+    const request = new Request('http://localhost/api/uploads', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ source: 'pdf', transactions: [transaction] }),
+    })
+
+    const response = await POST(request)
+
+    expect(response.status).toBe(201)
+    expect(mocks.insertMany).toHaveBeenCalledWith('mock-free-user', [
+      { ...transaction, uploadId: 'upload-1' },
+    ])
+  })
 })

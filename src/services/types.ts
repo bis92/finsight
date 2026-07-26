@@ -6,6 +6,7 @@ import type {
   DateRange,
   Insight,
   NewTransaction,
+  PdfExtractionInput,
   Plan,
   SubscriptionCandidate,
   Transaction,
@@ -19,6 +20,8 @@ export interface TransactionsRepository {
 
 export interface LlmService {
   mapColumns(input: ColumnMappingInput): Promise<ColumnMappingResult>
+  /** Extracts normalized transactions from a bank/card statement PDF. */
+  extractTransactions(input: PdfExtractionInput): Promise<NewTransaction[]>
   generateInsights(agg: AggregateSnapshot, plan: Plan): Promise<Insight[]>
   detectSubscriptions(txns: Transaction[]): Promise<SubscriptionCandidate[]>
 }

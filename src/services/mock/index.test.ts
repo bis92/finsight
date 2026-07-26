@@ -48,6 +48,20 @@ describe('mockLlmService', () => {
       .every(({ text }) => !/[<>*_`]/u.test(text))).toBe(true)
   })
 
+  it('returns deterministic normalized fixture transactions for PDF extraction', async () => {
+    const first = await mockLlmService.extractTransactions({ fileName: 'statement.pdf', dataBase64: 'JVBERi0=' })
+    const second = await mockLlmService.extractTransactions({ fileName: 'statement.pdf', dataBase64: 'JVBERi0=' })
+
+    expect(first).toEqual(second)
+    expect(first.length).toBeGreaterThan(0)
+    expect(first.every((txn) =>
+      txn.uploadId === ''
+      && /^\d{4}-\d{2}-\d{2}$/u.test(txn.occurredOn)
+      && Number.isInteger(txn.amount) && txn.amount > 0
+      && (txn.direction === 'expense' || txn.direction === 'income'),
+    )).toBe(true)
+  })
+
   it('reuses the deterministic rule-based subscription detector', async () => {
     const candidates = await mockLlmService.detectSubscriptions(MOCK_TRANSACTIONS)
 
