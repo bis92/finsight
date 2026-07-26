@@ -51,3 +51,5 @@ npm run test     # Vitest (CI 모드, watch 아님)
 | 2026-07-17 | create-pr 스킬 추가 | skills/create-pr | gh 미설치 시 PR 생성 폴백 필요 |
 | 2026-07-17 | `.claude/worktrees/` gitignore | .gitignore | 로컬 워크트리 status 노이즈 |
 | 2026-07-17 | blocked step metadata 커밋 + JSON 개행 | scripts/execute.py | blocked 분기 미커밋으로 워킹트리 오염 |
+| 2026-07-26 | 위험명령 차단 훅 수정 (`$CLAUDE_TOOL_INPUT`→stdin grep, exit 2) | settings.json | 존재하지 않는 env var로 훅이 무력화돼 rm -rf·force push 미차단 (jq 미설치라 stdin 직접 grep) |
+| 2026-07-26 | stale 워크트리·브랜치 정리 | worktrees/landing-optimize, feat-landing-optimize | 이미 main 병합된 워크트리가 매 세션 가짜 동시성 경보 유발 |
