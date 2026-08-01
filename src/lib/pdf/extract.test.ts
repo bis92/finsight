@@ -93,4 +93,33 @@ describe('extractRowsToTransactions', () => {
       { uploadId: '', occurredOn: '2026-07-01', merchant: '아이스무빙(봉천점)', amount: 600, direction: 'expense', category: '기타', raw: {} },
     ])
   })
+
+  // 은행 거래내역은 출금액/입금액이 분리된 컬럼이다. direction은 어느 컬럼이
+  // 채워졌는지로 결정된다(입금 상대방 이름에 수입 키워드가 없어도 income).
+  it('derives direction from separate 출금액/입금액 columns in a bank statement', () => {
+    const bankHeader: TextItem[] = [
+      { str: '거래일시', x: 50, y: 700 },
+      { str: '적요', x: 150, y: 700 },
+      { str: '출금액', x: 250, y: 700 },
+      { str: '입금액', x: 350, y: 700 },
+      { str: '잔액', x: 450, y: 700 },
+    ]
+    const withdrawalRow: TextItem[] = [
+      { str: '2026-07-01', x: 48, y: 680 },
+      { str: '스타벅스', x: 150, y: 680 },
+      { str: '4,500', x: 255, y: 680 },
+      { str: '120,000', x: 455, y: 680 },
+    ]
+    const depositRow: TextItem[] = [
+      { str: '2026-07-05', x: 48, y: 660 },
+      { str: '홍길동', x: 150, y: 660 },
+      { str: '3,000,000', x: 350, y: 660 },
+      { str: '3,120,000', x: 455, y: 660 },
+    ]
+
+    expect(extractRowsToTransactions([bankHeader, withdrawalRow, depositRow])).toEqual([
+      { uploadId: '', occurredOn: '2026-07-01', merchant: '스타벅스', amount: 4500, direction: 'expense', category: '기타', raw: {} },
+      { uploadId: '', occurredOn: '2026-07-05', merchant: '홍길동', amount: 3_000_000, direction: 'income', category: '수입', raw: {} },
+    ])
+  })
 })

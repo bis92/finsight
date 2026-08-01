@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Badge, Button, Card, MappingRow } from '@/components/ui'
 import { classifyMany } from '@/lib/analysis'
 import { applyMapping, requiresManualMapping } from '@/lib/csv'
+import { missingRequiredRoles } from '@/lib/csv/aliases'
 import { useUpload } from '@/queries/uploads'
 import type { ColumnMappingResult, ColumnRole } from '@/types'
 
@@ -16,9 +17,10 @@ const ROLE_OPTIONS: Array<{ value: ColumnRole | 'ignore'; label: string }> = [
   { value: 'date', label: '거래일' },
   { value: 'merchant', label: '가맹점' },
   { value: 'amount', label: '금액' },
+  { value: 'debit', label: '출금액' },
+  { value: 'credit', label: '입금액' },
   { value: 'category', label: '카테고리' },
 ]
-const REQUIRED_ROLES: ColumnRole[] = ['date', 'merchant', 'amount']
 
 function roleAt(mapping: ColumnMappingResult['mapping'], index: number): ColumnRole | null {
   return (Object.entries(mapping) as Array<[ColumnRole, number | null]>).find(([, mapped]) => mapped === index)?.[0] ?? null
@@ -146,8 +148,8 @@ function CsvMapping({
 }) {
   const manualRequired = requiresManualMapping(draft.mappingResult)
   const missingRequired = useMemo(() => mapping
-    ? REQUIRED_ROLES.filter((role) => mapping[role] === null)
-    : REQUIRED_ROLES,
+    ? missingRequiredRoles(mapping)
+    : ['date', 'merchant', 'amount'] as ColumnRole[],
   [mapping])
   const canConfirm = Boolean(mapping && missingRequired.length === 0 && (!manualRequired || manuallyReviewed))
 

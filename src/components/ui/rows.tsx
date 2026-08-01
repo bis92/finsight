@@ -71,6 +71,8 @@ const ROLE_LABELS: Record<ColumnRole, string> = {
   date: '거래일',
   merchant: '가맹점',
   amount: '금액',
+  debit: '출금액',
+  credit: '입금액',
   category: '카테고리',
 }
 

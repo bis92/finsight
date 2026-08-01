@@ -1,7 +1,7 @@
 import { getDocumentProxy } from 'unpdf'
 
-import { matchColumnRole } from '@/lib/csv/aliases'
-import { normalizeAmount, normalizeDate } from '@/lib/csv'
+import { hasRequiredRoles, matchColumnRole } from '@/lib/csv/aliases'
+import { normalizeDate, resolveAmountDirection } from '@/lib/csv'
 import { normalizeExtractedTransactions } from '@/lib/pdf'
 import type { ColumnRole, Direction, NewTransaction, PdfExtractionInput } from '@/types'
 
@@ -9,7 +9,6 @@ export type TextItem = { str: string; x: number; y: number }
 export type ColumnAnchor = { role: ColumnRole; lo: number; hi: number }
 
 const Y_TOLERANCE = 3
-const REQUIRED_ROLES: readonly ColumnRole[] = ['date', 'merchant', 'amount']
 
 export function groupIntoRows(items: TextItem[], yTolerance = Y_TOLERANCE): TextItem[][] {
   const rows: TextItem[][] = []
@@ -46,7 +45,7 @@ export function detectColumns(row: TextItem[]): ColumnAnchor[] | null {
     })
   })
 
-  if (!REQUIRED_ROLES.every((role) => seen.has(role))) {
+  if (!hasRequiredRoles(seen)) {
     return null
   }
   return anchors
@@ -75,17 +74,22 @@ export function extractRowsToTransactions(rows: TextItem[][]): NewTransaction[] 
 
     const cells = rowToCells(row, columns)
     const occurredOn = normalizeDate(cells.date ?? '')
-    const amount = normalizeAmount(cells.amount ?? '')
     const merchant = (cells.merchant ?? '').trim()
-    if (!occurredOn || !amount || merchant.length === 0) {
+    const resolved = resolveAmountDirection({
+      amount: cells.amount,
+      debit: cells.debit,
+      credit: cells.credit,
+      incomeSignalText: merchant,
+    })
+    if (!occurredOn || !resolved || merchant.length === 0) {
       continue
     }
 
     extracted.push({
       occurredOn,
       merchant,
-      amount: amount.amount,
-      direction: amount.isCredit ? 'income' : 'expense',
+      amount: resolved.amount,
+      direction: resolved.direction,
     })
   }
 

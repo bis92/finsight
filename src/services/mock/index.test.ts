@@ -27,7 +27,7 @@ describe('mapColumns (lib/csv/mapping)', () => {
 
     expect(first).toEqual(second)
     expect(first).toEqual({
-      mapping: { date: 0, merchant: 1, amount: 2, category: 4 },
+      mapping: { date: 0, merchant: 1, amount: 2, debit: null, credit: null, category: 4 },
       confidence: 0.95,
       missingRequired: [],
     })
