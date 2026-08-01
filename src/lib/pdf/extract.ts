@@ -25,29 +25,31 @@ export function groupIntoRows(items: TextItem[], yTolerance = Y_TOLERANCE): Text
 }
 
 export function detectColumns(row: TextItem[]): ColumnAnchor[] | null {
-  const matched: Array<{ role: ColumnRole; x: number }> = []
+  // 경계는 매칭된 라벨만이 아니라 헤더의 모든 컬럼 x로 잡는다. 그래야 인식 못 하는
+  // 컬럼(카드번호·사업자번호 등)이 자기 x-밴드를 갖고, 그 값이 인접한 date/merchant/
+  // amount 셀에 섞이지 않는다. 미인식 컬럼은 role 없이 anchor만 만들지 않고 건너뛴다.
+  const sorted = [...row].sort((left, right) => left.x - right.x)
   const seen = new Set<ColumnRole>()
-  for (const item of [...row].sort((left, right) => left.x - right.x)) {
+  const anchors: ColumnAnchor[] = []
+  sorted.forEach((item, index) => {
     const role = matchColumnRole(item.str)
-    if (role && !seen.has(role)) {
-      seen.add(role)
-      matched.push({ role, x: item.x })
+    if (!role || seen.has(role)) {
+      return
     }
-  }
+    seen.add(role)
+    const previous = sorted[index - 1]
+    const next = sorted[index + 1]
+    anchors.push({
+      role,
+      lo: previous ? (previous.x + item.x) / 2 : Number.NEGATIVE_INFINITY,
+      hi: next ? (item.x + next.x) / 2 : Number.POSITIVE_INFINITY,
+    })
+  })
+
   if (!REQUIRED_ROLES.every((role) => seen.has(role))) {
     return null
   }
-
-  const sorted = matched.sort((left, right) => left.x - right.x)
-  return sorted.map((column, index) => {
-    const previous = sorted[index - 1]
-    const next = sorted[index + 1]
-    return {
-      role: column.role,
-      lo: previous ? (previous.x + column.x) / 2 : Number.NEGATIVE_INFINITY,
-      hi: next ? (column.x + next.x) / 2 : Number.POSITIVE_INFINITY,
-    }
-  })
+  return anchors
 }
 
 export function rowToCells(row: TextItem[], columns: ColumnAnchor[]): Partial<Record<ColumnRole, string>> {

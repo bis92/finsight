@@ -63,4 +63,34 @@ describe('extractRowsToTransactions', () => {
   it('returns an empty array when no header row is found', () => {
     expect(extractRowsToTransactions([expenseRow, incomeRow])).toEqual([])
   })
+
+  // 실제 카드사 명세서는 인식되는 컬럼(이용일·이용금액·이용하신곳) 사이에
+  // 인식 못 하는 컬럼(카드번호·취소여부·결제방법·사업자번호·과세유형)이 낀다.
+  // 밴드 경계가 인식된 라벨만으로 계산되면 인접 컬럼 값이 셀에 섞여 전부 드롭된다.
+  it('ignores unrecognized columns wedged between recognized ones', () => {
+    const wideHeader: TextItem[] = [
+      { str: '이용일', x: 59, y: 660 },
+      { str: '카드번호', x: 134, y: 660 },
+      { str: '취소여부', x: 204, y: 660 },
+      { str: '결제방법', x: 254, y: 660 },
+      { str: '이용금액', x: 311, y: 660 },
+      { str: '이용하신곳', x: 371, y: 660 },
+      { str: '사업자번호', x: 435, y: 660 },
+      { str: '과세유형', x: 502, y: 660 },
+    ]
+    const wideRow: TextItem[] = [
+      { str: '2026-07-01', x: 48, y: 632 },
+      { str: '6258-04**-****-6036', x: 105, y: 632 },
+      { str: '정상', x: 212, y: 632 },
+      { str: '일시불', x: 258, y: 632 },
+      { str: '600', x: 319, y: 632 },
+      { str: '아이스무빙(봉천점)', x: 357, y: 632 },
+      { str: '7773101646', x: 429, y: 632 },
+      { str: '일반과세자', x: 499, y: 632 },
+    ]
+
+    expect(extractRowsToTransactions([wideHeader, wideRow])).toEqual([
+      { uploadId: '', occurredOn: '2026-07-01', merchant: '아이스무빙(봉천점)', amount: 600, direction: 'expense', category: '기타', raw: {} },
+    ])
+  })
 })
