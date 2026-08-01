@@ -3,6 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 
 import { aggregate } from '@/lib/analysis'
+import { buildFreeInsights } from '@/lib/analysis/insights'
+import { mapColumns } from '@/lib/csv/mapping'
 import { MOCK_TRANSACTIONS } from '@/services/mock/fixtures/transactions'
 import { mockLlmService } from '@/services/mock/llm'
 import { getMockProfile } from '@/services/mock/profile'
@@ -18,24 +20,26 @@ const mappingInput: ColumnMappingInput = {
   locale: 'ko-KR',
 }
 
-describe('mockLlmService', () => {
-  it('returns a deterministic valid column mapping for representative Korean card headers', async () => {
-    const first = await mockLlmService.mapColumns(mappingInput)
-    const second = await mockLlmService.mapColumns(mappingInput)
+describe('mapColumns (lib/csv/mapping)', () => {
+  it('returns a deterministic valid column mapping for representative Korean card headers', () => {
+    const first = mapColumns(mappingInput)
+    const second = mapColumns(mappingInput)
 
     expect(first).toEqual(second)
     expect(first).toEqual({
       mapping: { date: 0, merchant: 1, amount: 2, category: 4 },
-      confidence: 0.74,
+      confidence: 0.95,
       missingRequired: [],
     })
   })
+})
 
+describe('buildFreeInsights + mockLlmService.generateProInsights', () => {
   it('returns distinct Free summaries and Pro diagnosis/suggestions using aggregate values', async () => {
     const snapshot = aggregate(MOCK_TRANSACTIONS, '2026-06')
 
-    const free = await mockLlmService.generateInsights(snapshot, 'free')
-    const pro = await mockLlmService.generateInsights(snapshot, 'pro')
+    const free = buildFreeInsights(snapshot)
+    const pro = await mockLlmService.generateProInsights(snapshot)
 
     expect(free).toHaveLength(2)
     expect(new Set(free.map(({ kind }) => kind))).toEqual(new Set(['summary']))
@@ -47,21 +51,9 @@ describe('mockLlmService', () => {
     expect([...free, ...pro].flatMap(({ segments }) => segments)
       .every(({ text }) => !/[<>*_`]/u.test(text))).toBe(true)
   })
+})
 
-  it('returns deterministic normalized fixture transactions for PDF extraction', async () => {
-    const first = await mockLlmService.extractTransactions({ fileName: 'statement.pdf', dataBase64: 'JVBERi0=' })
-    const second = await mockLlmService.extractTransactions({ fileName: 'statement.pdf', dataBase64: 'JVBERi0=' })
-
-    expect(first).toEqual(second)
-    expect(first.length).toBeGreaterThan(0)
-    expect(first.every((txn) =>
-      txn.uploadId === ''
-      && /^\d{4}-\d{2}-\d{2}$/u.test(txn.occurredOn)
-      && Number.isInteger(txn.amount) && txn.amount > 0
-      && (txn.direction === 'expense' || txn.direction === 'income'),
-    )).toBe(true)
-  })
-
+describe('mockLlmService', () => {
   it('reuses the deterministic rule-based subscription detector', async () => {
     const candidates = await mockLlmService.detectSubscriptions(MOCK_TRANSACTIONS)
 

@@ -31,7 +31,7 @@ export async function GET(request: Request): Promise<Response> {
     const snapshot = aggregate(transactions, period)
     const llmService = getLlmService()
     const [insights, subscriptions] = await Promise.all([
-      llmService.generateInsights(snapshot, profile.plan),
+      llmService.generateProInsights(snapshot),
       llmService.detectSubscriptions(transactions),
     ])
 

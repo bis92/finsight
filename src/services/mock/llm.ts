@@ -2,85 +2,10 @@
 import 'server-only'
 
 import { detectSubscriptions } from '@/lib/analysis'
-import { normalizeExtractedTransactions } from '@/lib/pdf'
-import type {
-  AggregateSnapshot,
-  ColumnMappingInput,
-  ColumnMappingResult,
-  Insight,
-} from '@/types'
+import { won } from '@/lib/analysis/insights'
+import type { AggregateSnapshot, Insight } from '@/types'
 
 import type { LlmService } from '../types'
-
-const HEADER_ALIASES = {
-  date: ['이용일자', '거래일', '거래일자', '승인일자'],
-  merchant: ['가맹점명', '가맹점', '사용처', '적요'],
-  amount: ['이용금액', '거래금액', '결제금액', '원화금액'],
-  category: ['업종', '카테고리', '업종명'],
-} as const
-
-const REQUIRED_ROLES = ['date', 'merchant', 'amount'] as const
-
-function findHeader(headers: string[], aliases: readonly string[]): number | null {
-  const index = headers.findIndex((header) => aliases.includes(header.trim()))
-  return index === -1 ? null : index
-}
-
-function mapColumns(input: ColumnMappingInput): ColumnMappingResult {
-  const mapping = {
-    date: findHeader(input.headers, HEADER_ALIASES.date),
-    merchant: findHeader(input.headers, HEADER_ALIASES.merchant),
-    amount: findHeader(input.headers, HEADER_ALIASES.amount),
-    category: findHeader(input.headers, HEADER_ALIASES.category),
-  }
-  const missingRequired = REQUIRED_ROLES.filter((role) => mapping[role] === null)
-
-  return {
-    mapping,
-    confidence: missingRequired.length > 0 ? 0.4 : mapping.category === null ? 0.91 : 0.74,
-    missingRequired: [...missingRequired],
-  }
-}
-
-function won(amount: number): string {
-  return amount.toLocaleString('ko-KR')
-}
-
-function topCategoryInsight(agg: AggregateSnapshot): Insight {
-  const top = agg.byCategory[0]
-  if (!top) {
-    return {
-      title: '카테고리 요약',
-      kind: 'summary',
-      segments: [{ text: '분석할 지출 내역이 없습니다.', emphasis: false }],
-    }
-  }
-
-  return {
-    title: '가장 큰 지출',
-    kind: 'summary',
-    segments: [
-      { text: `${top.category} 지출이 `, emphasis: false },
-      { text: `${won(top.amount)}원`, emphasis: true },
-      { text: `으로 전체 지출의 ${Math.round(top.ratio * 100)}%입니다.`, emphasis: false },
-    ],
-  }
-}
-
-function freeInsights(agg: AggregateSnapshot): Insight[] {
-  return [
-    {
-      title: `${agg.period} 소비 요약`,
-      kind: 'summary',
-      segments: [
-        { text: '총지출은 ', emphasis: false },
-        { text: `${won(agg.totalExpense)}원`, emphasis: true },
-        { text: `이고 총수입은 ${won(agg.totalIncome)}원입니다.`, emphasis: false },
-      ],
-    },
-    topCategoryInsight(agg),
-  ]
-}
 
 function proInsights(agg: AggregateSnapshot): Insight[] {
   const fixedExpense = agg.byCategory
@@ -139,27 +64,9 @@ function proInsights(agg: AggregateSnapshot): Insight[] {
   ]
 }
 
-// Deterministic stand-in for Claude PDF extraction. Normalized through the same
-// pure logic as the live path so callers see identical shapes across data sources.
-const MOCK_PDF_ROWS = [
-  { occurredOn: '2026-06-02', merchant: '배달의민족', amount: 23900, direction: 'expense' },
-  { occurredOn: '2026-06-04', merchant: '스타벅스', amount: 4500, direction: 'expense' },
-  { occurredOn: '2026-06-09', merchant: 'GS25 편의점', amount: 8200, direction: 'expense' },
-  { occurredOn: '2026-06-15', merchant: '넷플릭스', amount: 13500, direction: 'expense' },
-  { occurredOn: '2026-06-25', merchant: '급여', amount: 3_200_000, direction: 'income' },
-]
-
 export const mockLlmService: LlmService = {
-  async mapColumns(input) {
-    return mapColumns(input)
-  },
-
-  async extractTransactions() {
-    return normalizeExtractedTransactions({ transactions: MOCK_PDF_ROWS })
-  },
-
-  async generateInsights(agg, plan) {
-    return plan === 'pro' ? proInsights(agg) : freeInsights(agg)
+  async generateProInsights(agg) {
+    return proInsights(agg)
   },
 
   async detectSubscriptions(txns) {

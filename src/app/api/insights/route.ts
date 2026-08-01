@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { aggregate } from '@/lib/analysis'
+import { buildFreeInsights } from '@/lib/analysis/insights'
 import {
   getLlmService,
   getProfileService,
@@ -23,7 +24,9 @@ export async function GET(request: Request): Promise<Response> {
       getProfileService()(userId),
     ])
     const snapshot = aggregate(transactions, period)
-    const insights = await getLlmService().generateInsights(snapshot, profile.plan)
+    const insights = profile.plan === 'pro'
+      ? await getLlmService().generateProInsights(snapshot)
+      : buildFreeInsights(snapshot)
 
     return NextResponse.json({ period, insights })
   })

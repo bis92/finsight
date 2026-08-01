@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 
+import { extractTransactions } from '@/lib/pdf/extract'
 import { getDataSource } from '@/lib/env'
 import { assertPdfBytes, PdfValidationError } from '@/lib/pdf'
-import { getLlmService } from '@/services'
 
 import {
   ApiRouteError,
@@ -44,7 +44,7 @@ export async function POST(request: Request): Promise<Response> {
       throw error
     }
 
-    const transactions = await getLlmService().extractTransactions({
+    const transactions = await extractTransactions({
       fileName: body.fileName,
       dataBase64: body.dataBase64,
     })

@@ -13,9 +13,9 @@ const mocks = vi.hoisted(() => ({
 vi.mock('@/lib/env', () => ({ getDataSource: mocks.getDataSource }))
 vi.mock('@/lib/auth/session', () => ({ getAuthenticatedUserId: mocks.getAuthenticatedUserId }))
 vi.mock('@/services', () => ({
-  getLlmService: () => ({ extractTransactions: mocks.extractTransactions }),
   getProfileService: () => mocks.getProfile,
 }))
+vi.mock('@/lib/pdf/extract', () => ({ extractTransactions: mocks.extractTransactions }))
 vi.mock('@/services/live/uploads', () => ({ countUploadsInRange: mocks.countUploadsThisMonth }))
 
 import { POST } from './route'
