@@ -130,6 +130,9 @@ export function ProReportClient({
     <main className="fs-fade mx-auto max-w-container px-lg py-xxl text-left">
       <div className="flex flex-wrap items-center gap-sm"><h1 className="text-title-lg font-title-lg">{formatPeriodLabel(period)} Pro 지출 진단</h1><Badge variant="pro">OPUS 4.8</Badge></div>
       <p className="mt-xs text-body-sm text-muted">집계 숫자를 바탕으로 지출을 해석하고 다음 행동을 제안합니다.</p>
+      {report.aiDegraded && (
+        <p role="status" className="mt-lg rounded-md border border-hairline bg-surface-soft p-base text-body-sm text-body">AI 심층 요약은 현재 이용할 수 없어 기본 분석만 표시합니다. 고정비·변동비와 정기구독 후보는 그대로 제공됩니다.</p>
+      )}
 
       <div className="mt-xl grid gap-lg lg:grid-cols-2">
         <Card><h2 className="text-title-md font-title-md">진단 요약</h2><div className="mt-lg space-y-lg">{diagnoses.map((insight) => <article key={insight.title}><h3 className="text-title-sm font-title-sm">{insight.title}</h3><InsightText insight={insight} /></article>)}</div></Card>

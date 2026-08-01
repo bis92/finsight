@@ -115,6 +115,34 @@ describe('API Route Handlers', () => {
     expect(response.status).toBe(200)
     expect(body.insights[0].title).toBe('pro:테스트 분석')
     expect(body.subscriptions).toEqual([expect.objectContaining({ merchant: '넷플릭스' })])
+    expect(body.aiDegraded).toBe(false)
+  })
+
+  it('degrades the Pro report to internal insights when Opus fails (no 500)', async () => {
+    mocks.setPlan('pro')
+    mocks.generateProInsights.mockRejectedValueOnce(new Error('credit balance too low'))
+
+    const response = await getProReport(new Request('http://localhost/api/pro-report?period=2026-06'))
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body.aiDegraded).toBe(true)
+    expect(body.insights[0].title).toBe('free:테스트 분석')
+    // 규칙 기반 구독 후보는 계속 제공된다
+    expect(body.subscriptions).toEqual([expect.objectContaining({ merchant: '넷플릭스' })])
+    expect(mocks.buildFreeInsights).toHaveBeenCalledTimes(1)
+  })
+
+  it('degrades the Pro insights route to internal insights when Opus fails', async () => {
+    mocks.setPlan('pro')
+    mocks.generateProInsights.mockRejectedValueOnce(new Error('credit balance too low'))
+
+    const response = await getInsights(new Request('http://localhost/api/insights?period=2026-06'))
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body.aiDegraded).toBe(true)
+    expect(body.insights[0].title).toBe('free:테스트 분석')
   })
 
   it('rejects a transaction category outside the fixed enum', async () => {
