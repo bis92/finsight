@@ -13,6 +13,15 @@ export function formatKrw(value: number): string {
   return `${KOREAN_NUMBER_FORMAT.format(Math.round(value))}원`
 }
 
+export function formatPeriodLabel(period: string): string {
+  const [year, month] = period.split('-')
+  return `${year}년 ${Number(month)}월`
+}
+
+export function currentKstPeriod(): string {
+  return KST_DATE_FORMAT.format(new Date()).slice(0, 7)
+}
+
 export function formatKstDate(value: string | Date): string {
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return value.replaceAll('-', '.')

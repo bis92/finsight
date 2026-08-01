@@ -5,6 +5,7 @@ import {
   classify,
   classifyMany,
   detectSubscriptions,
+  latestPeriod,
 } from '@/lib/analysis'
 import type { NewTransaction, Transaction } from '@/types'
 
@@ -99,6 +100,39 @@ describe('aggregate', () => {
       byCategory: [],
       topMerchants: [],
     })
+  })
+
+  it('includes only transactions within the requested period', () => {
+    const transactions = [
+      transaction({ id: '1', occurredOn: '2026-06-30', merchant: '배달의민족', amount: 10_000, category: '식비' }),
+      transaction({ id: '2', occurredOn: '2026-07-01', merchant: '무신사', amount: 40_000, category: '쇼핑' }),
+      transaction({ id: '3', occurredOn: '2026-05-31', merchant: '스타벅스', amount: 5_000, category: '식비' }),
+    ]
+
+    const snapshot = aggregate(transactions, '2026-07')
+
+    expect(snapshot).toMatchObject({
+      period: '2026-07',
+      totalExpense: 40_000,
+      byCategory: [{ category: '쇼핑', amount: 40_000, ratio: 1 }],
+    })
+    expect(snapshot.topMerchants).toEqual([{ merchant: '무신사', amount: 40_000, count: 1 }])
+  })
+})
+
+describe('latestPeriod', () => {
+  it('returns the most recent YYYY-MM present in the transactions', () => {
+    const transactions = [
+      transaction({ id: '1', occurredOn: '2026-05-31', merchant: 'A', amount: 1_000 }),
+      transaction({ id: '2', occurredOn: '2026-07-02', merchant: 'B', amount: 1_000 }),
+      transaction({ id: '3', occurredOn: '2026-06-15', merchant: 'C', amount: 1_000 }),
+    ]
+
+    expect(latestPeriod(transactions, '2026-01')).toBe('2026-07')
+  })
+
+  it('falls back to the provided period when there are no transactions', () => {
+    expect(latestPeriod([], '2026-08')).toBe('2026-08')
   })
 })
 

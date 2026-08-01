@@ -35,14 +35,19 @@ CSV(은행 거래내역 · 카드 명세서)를 업로드하면 LLM이 분석해
 - 커밋 메시지는 conventional commits (feat:, fix:, docs:, refactor:, chore:).
 
 ## 명령어
-npm run dev      # 개발 서버
-npm run build    # 프로덕션 빌드
-npm run lint     # ESLint
-npm run test     # Vitest (CI 모드, watch 아님)
+npm run dev        # 개발 서버
+npm run dev:clean  # 기존 next 서버 종료 → .next 삭제 → 단일 기동 (캐시 오염·무스타일·500·_document ENOENT 시)
+npm run build      # 프로덕션 빌드
+npm run lint       # ESLint
+npm run test       # Vitest (CI 모드, watch 아님)
+npm run smoke      # 브라우저 없이 전 라우트 5xx + 홈 참조 CSS/JS 404 검사 (exit 1 게이트)
+                   #   이미 뜬 서버 검사: SMOKE_BASE=http://localhost:3000 npm run smoke
 
 ## 하네스 보조 도구
 - `.claude/scripts/repo-preflight.sh` — SessionStart 훅. 활성 워크트리가 2개 이상이면 동시성 경고(백그라운드 에이전트가 같은 리포를 커밋·머지 중일 수 있음). git 액션 전 `git fetch`로 상태 재확인 유도.
 - `.claude/skills/create-pr` — 브랜치 push + PR 생성 스킬. `gh` 있으면 `gh pr create`, 없으면 push URL 폴백(이 머신엔 gh 미설치).
+- `scripts/dev-clean.sh` (`npm run dev:clean`) — 캐시 오염 복구 표준 절차. **먼저 기존 next kill → 그다음 `.next` 삭제 → 단일 기동**(순서 엄수: 실행 중 `.next` 삭제는 서버 wedge·`_document.js` ENOENT 유발). 무스타일·500·ENOENT 어떤 증상이든 이 명령 하나로 복구.
+- `scripts/smoke.sh` (`npm run smoke`) — HTTP 스모크 테스트. 서버 없으면 clean 자체 기동→검사→종료, 있으면(`SMOKE_BASE`) 그 서버 검사. 페이지·API 5xx + 홈 참조 CSS/JS 404(무스타일 화면 원인)까지 판정. 브라우저 수동 확인 대체.
 
 **변경 이력:**
 | 날짜 | 변경 내용 | 대상 | 사유 |
@@ -54,3 +59,4 @@ npm run test     # Vitest (CI 모드, watch 아님)
 | 2026-07-26 | 위험명령 차단 훅 수정 (`$CLAUDE_TOOL_INPUT`→stdin grep, exit 2) | settings.json | 존재하지 않는 env var로 훅이 무력화돼 rm -rf·force push 미차단 (jq 미설치라 stdin 직접 grep) |
 | 2026-07-26 | stale 워크트리·브랜치 정리 | worktrees/landing-optimize, feat-landing-optimize | 이미 main 병합된 워크트리가 매 세션 가짜 동시성 경보 유발 |
 | 2026-07-30 | LLM을 Pro Opus로 한정, CSV매핑·PDF추출·Free인사이트 내부 엔진화 (unpdf 도입) | src/lib/csv, src/lib/pdf/extract, src/lib/analysis/insights, services, api routes | LLM 비용/의존 축소 — 결정적 내부 처리 |
+| 2026-08-01 | `npm run smoke`(에셋 404까지 검사)·`npm run dev:clean`(kill→삭제→단일기동) 추가 | scripts/smoke.sh, scripts/dev-clean.sh, package.json | `.next` 캐시 오염으로 CSS 404(무스타일)·`_document.js` ENOENT 재발. dev:clean은 실행 중 서버를 먼저 죽여 wedge 방지. 브라우저 수동 확인 없이 자동 감지·복구 |

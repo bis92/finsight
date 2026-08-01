@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "lint": "next lint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "smoke": "bash scripts/smoke.sh",
+    "dev:clean": "bash scripts/dev-clean.sh"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.1",

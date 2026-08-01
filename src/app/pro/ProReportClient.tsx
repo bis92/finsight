@@ -4,15 +4,14 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 
 import { Card, Badge, Button, Modal, SubscriptionRow } from '@/components/ui'
-import { aggregate } from '@/lib/analysis'
+import { aggregate, latestPeriod } from '@/lib/analysis'
 import { ApiError, apiClient } from '@/lib/apiClient'
-import { formatKrw } from '@/lib/format'
+import { currentKstPeriod, formatKrw, formatPeriodLabel } from '@/lib/format'
 import { useProReport } from '@/queries/analyses'
 import { useProfile } from '@/queries/profile'
 import { useTransactions } from '@/queries/transactions'
 import type { Insight } from '@/types'
 
-const PERIOD = '2026-06'
 const FIXED_CATEGORIES = new Set(['주거', '구독', '공과금'])
 const CADENCE_LABEL = { monthly: '매월 추정', weekly: '매주 추정', unknown: '주기 추정 중' } as const
 
@@ -37,8 +36,12 @@ export function ProReportClient({
 }: ProReportClientProps) {
   const { profile, queryState: profileState } = useProfile()
   const isPro = !guest && profile?.plan === 'pro'
-  const { report, queryState: reportState } = useProReport(PERIOD, isPro)
   const { transactions, queryState: transactionState } = useTransactions()
+  const period = useMemo(() => latestPeriod(transactions, currentKstPeriod()), [transactions])
+  const { report, queryState: reportState } = useProReport(
+    period,
+    isPro && transactionState.status === 'success',
+  )
   const [upgradeOpen, setUpgradeOpen] = useState(false)
   const [checkoutPending, setCheckoutPending] = useState(false)
   const [checkoutError, setCheckoutError] = useState<Error | null>(null)
@@ -61,12 +64,12 @@ export function ProReportClient({
   }
 
   const expenseSplit = useMemo(() => {
-    const snapshot = aggregate(transactions, PERIOD)
+    const snapshot = aggregate(transactions, period)
     const fixed = snapshot.byCategory
       .filter(({ category }) => FIXED_CATEGORIES.has(category))
       .reduce((sum, { amount }) => sum + amount, 0)
     return { fixed, variable: Math.max(0, snapshot.totalExpense - fixed), total: snapshot.totalExpense }
-  }, [transactions])
+  }, [transactions, period])
 
   if (profileState.status === 'loading') {
     return <main className="mx-auto max-w-container px-lg py-xxl"><p className="text-body-sm text-muted">Pro 권한을 확인하는 중입니다.</p></main>
@@ -125,8 +128,11 @@ export function ProReportClient({
 
   return (
     <main className="fs-fade mx-auto max-w-container px-lg py-xxl text-left">
-      <div className="flex flex-wrap items-center gap-sm"><h1 className="text-title-lg font-title-lg">2026년 6월 Pro 지출 진단</h1><Badge variant="pro">OPUS 4.8</Badge></div>
+      <div className="flex flex-wrap items-center gap-sm"><h1 className="text-title-lg font-title-lg">{formatPeriodLabel(period)} Pro 지출 진단</h1><Badge variant="pro">OPUS 4.8</Badge></div>
       <p className="mt-xs text-body-sm text-muted">집계 숫자를 바탕으로 지출을 해석하고 다음 행동을 제안합니다.</p>
+      {report.aiDegraded && (
+        <p role="status" className="mt-lg rounded-md border border-hairline bg-surface-soft p-base text-body-sm text-body">AI 심층 요약은 현재 이용할 수 없어 기본 분석만 표시합니다. 고정비·변동비와 정기구독 후보는 그대로 제공됩니다.</p>
+      )}
 
       <div className="mt-xl grid gap-lg lg:grid-cols-2">
         <Card><h2 className="text-title-md font-title-md">진단 요약</h2><div className="mt-lg space-y-lg">{diagnoses.map((insight) => <article key={insight.title}><h3 className="text-title-sm font-title-sm">{insight.title}</h3><InsightText insight={insight} /></article>)}</div></Card>

@@ -1,13 +1,17 @@
 import { NextResponse } from 'next/server'
 
+import { buildFreeInsights } from '@/lib/analysis/insights'
 import { getAuthenticatedUserId } from '@/lib/auth/session'
 import { missingRequiredRoles } from '@/lib/csv/aliases'
 import { getDataSource } from '@/lib/env'
+import type { LlmService } from '@/services/types'
 import { CATEGORIES } from '@/types'
 import type {
+  AggregateSnapshot,
   Category,
   ColumnMappingResult,
   DateRange,
+  Insight,
   NewTransaction,
 } from '@/types'
 
@@ -142,6 +146,23 @@ export function requireTransactions(value: unknown): NewTransaction[] {
     throw new ApiRouteError(400, '거래 데이터가 유효하지 않습니다')
   }
   return value as NewTransaction[]
+}
+
+/**
+ * Pro 진단 인사이트를 Opus로 생성하되, LLM 호출이 실패하면(크레딧 부족·키
+ * 오류·레이트리밋 등) 500으로 흘리지 않고 내부 규칙 엔진(buildFreeInsights)으로
+ * 폴백한다. aiDegraded=true 로 UI가 "AI 요약 이용 불가"를 안내할 수 있게 신호한다.
+ */
+export async function proInsightsWithFallback(
+  llmService: LlmService,
+  snapshot: AggregateSnapshot,
+): Promise<{ insights: Insight[]; aiDegraded: boolean }> {
+  try {
+    return { insights: await llmService.generateProInsights(snapshot), aiDegraded: false }
+  } catch (error) {
+    console.error('[insights] Opus Pro 진단 실패 — 내부 엔진으로 폴백', error)
+    return { insights: buildFreeInsights(snapshot), aiDegraded: true }
+  }
 }
 
 export async function withErrorBoundary(

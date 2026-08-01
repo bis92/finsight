@@ -9,6 +9,7 @@ import {
 
 import {
   ApiRouteError,
+  proInsightsWithFallback,
   resolveCurrentUserId,
   periodRange,
   requirePeriod,
@@ -30,11 +31,11 @@ export async function GET(request: Request): Promise<Response> {
     )
     const snapshot = aggregate(transactions, period)
     const llmService = getLlmService()
-    const [insights, subscriptions] = await Promise.all([
-      llmService.generateProInsights(snapshot),
+    const [{ insights, aiDegraded }, subscriptions] = await Promise.all([
+      proInsightsWithFallback(llmService, snapshot),
       llmService.detectSubscriptions(transactions),
     ])
 
-    return NextResponse.json({ period, insights, subscriptions })
+    return NextResponse.json({ period, insights, subscriptions, aiDegraded })
   })
 }

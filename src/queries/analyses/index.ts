@@ -11,6 +11,8 @@ export type ProReport = {
   period: string
   insights: Insight[]
   subscriptions: SubscriptionCandidate[]
+  /** Opus 진단이 실패해 내부 규칙 엔진으로 폴백했는지 여부. */
+  aiDegraded?: boolean
 }
 
 export const analysisKeys = {

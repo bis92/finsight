@@ -9,6 +9,7 @@ import {
 } from '@/services'
 
 import {
+  proInsightsWithFallback,
   resolveCurrentUserId,
   periodRange,
   requirePeriod,
@@ -24,10 +25,12 @@ export async function GET(request: Request): Promise<Response> {
       getProfileService()(userId),
     ])
     const snapshot = aggregate(transactions, period)
-    const insights = profile.plan === 'pro'
-      ? await getLlmService().generateProInsights(snapshot)
-      : buildFreeInsights(snapshot)
 
-    return NextResponse.json({ period, insights })
+    if (profile.plan === 'pro') {
+      const { insights, aiDegraded } = await proInsightsWithFallback(getLlmService(), snapshot)
+      return NextResponse.json({ period, insights, aiDegraded })
+    }
+
+    return NextResponse.json({ period, insights: buildFreeInsights(snapshot) })
   })
 }

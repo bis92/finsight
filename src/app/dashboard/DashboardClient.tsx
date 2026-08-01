@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 
-import { aggregate } from '@/lib/analysis'
-import { formatKstDate } from '@/lib/format'
+import { aggregate, latestPeriod } from '@/lib/analysis'
+import { currentKstPeriod, formatKstDate } from '@/lib/format'
 import { useInsights } from '@/queries/insights'
 import { useProfile } from '@/queries/profile'
 import { useReclassify, useTransactions } from '@/queries/transactions'
@@ -29,8 +29,6 @@ import {
 
 type Tab = 'overview' | 'categories' | 'ledger'
 
-const PERIOD = '2026-06'
-
 function cardName(transaction: Transaction): string | undefined {
   return typeof transaction.raw.card === 'string' ? transaction.raw.card : undefined
 }
@@ -46,7 +44,8 @@ function SectionHeading({ title, description }: { title: string; description?: s
 
 export function DashboardClient({ guest }: { guest: boolean }) {
   const { transactions, queryState } = useTransactions(undefined, guest)
-  const { insights, queryState: insightState } = useInsights(PERIOD, guest)
+  const period = useMemo(() => latestPeriod(transactions, currentKstPeriod()), [transactions])
+  const { insights, queryState: insightState } = useInsights(period, guest)
   const { profile } = useProfile()
   const reclassify = useReclassify()
   const [tab, setTab] = useState<Tab>('overview')
@@ -54,7 +53,7 @@ export function DashboardClient({ guest }: { guest: boolean }) {
   const [reclassifying, setReclassifying] = useState(false)
   const [filter, setFilter] = useState<Category | 'all'>('all')
 
-  const snapshot = useMemo(() => aggregate(transactions, PERIOD), [transactions])
+  const snapshot = useMemo(() => aggregate(transactions, period), [transactions, period])
   const expenseCategories = snapshot.byCategory.filter((item) => item.category !== '수입')
   const filteredTransactions = filter === 'all'
     ? transactions
@@ -62,7 +61,7 @@ export function DashboardClient({ guest }: { guest: boolean }) {
   const filteredExpense = filteredTransactions
     .filter((transaction) => transaction.direction === 'expense')
     .reduce((sum, transaction) => sum + transaction.amount, 0)
-  const filteredMerchants = aggregate(filteredTransactions, PERIOD).topMerchants.slice(0, 3)
+  const filteredMerchants = aggregate(filteredTransactions, period).topMerchants.slice(0, 3)
   const maxCategory = Math.max(0, ...expenseCategories.map((item) => item.amount))
   const netBalance = snapshot.totalIncome - snapshot.totalExpense
 
