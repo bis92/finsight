@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { getLlmService } from '@/services'
+import { mapColumns } from '@/lib/csv/mapping'
 
 import {
   ApiRouteError,
@@ -25,7 +25,7 @@ export async function POST(request: Request): Promise<Response> {
       throw new ApiRouteError(400, '매핑 요청 데이터가 유효하지 않습니다')
     }
 
-    const result = await getLlmService().mapColumns({
+    const result = mapColumns({
       headers: body.headers,
       sampleRows: body.sampleRows.slice(0, MAX_SAMPLE_ROWS),
       locale: 'ko-KR',

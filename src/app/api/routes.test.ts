@@ -51,15 +51,13 @@ const mocks = vi.hoisted(() => {
       ...transactions[0],
       category,
     })),
-    mapColumns: vi.fn(async (input) => ({
+    mapColumns: vi.fn((input) => ({
       mapping: { date: 0, merchant: 1, amount: 2, category: null },
       confidence: input.sampleRows.length === 20 ? 0.9 : 0.8,
       missingRequired: [],
     })),
-    generateInsights: vi.fn(async (_aggregate, requestedPlan: Plan) => insights.map((item) => ({
-      ...item,
-      title: `${requestedPlan}:${item.title}`,
-    }))),
+    buildFreeInsights: vi.fn(() => insights.map((item) => ({ ...item, title: `free:${item.title}` }))),
+    generateProInsights: vi.fn(async () => insights.map((item) => ({ ...item, title: `pro:${item.title}` }))),
     detectSubscriptions: vi.fn(async () => [{
       merchant: '넷플릭스',
       amount: 13_500,
@@ -79,13 +77,14 @@ vi.mock('@/services', () => ({
     reclassify: mocks.reclassify,
   }),
   getLlmService: () => ({
-    mapColumns: mocks.mapColumns,
-    generateInsights: mocks.generateInsights,
+    generateProInsights: mocks.generateProInsights,
     detectSubscriptions: mocks.detectSubscriptions,
   }),
   getProfileService: () => mocks.getProfile,
   getUploadsService: () => mocks.listUploads,
 }))
+vi.mock('@/lib/csv/mapping', () => ({ mapColumns: mocks.mapColumns }))
+vi.mock('@/lib/analysis/insights', () => ({ buildFreeInsights: mocks.buildFreeInsights }))
 
 import { GET as getInsights } from '@/app/api/insights/route'
 import { GET as getProReport } from '@/app/api/pro-report/route'
@@ -103,7 +102,7 @@ describe('API Route Handlers', () => {
 
     expect(response.status).toBe(403)
     await expect(response.json()).resolves.toEqual({ message: 'Pro 전용 기능입니다' })
-    expect(mocks.generateInsights).not.toHaveBeenCalled()
+    expect(mocks.generateProInsights).not.toHaveBeenCalled()
     expect(mocks.detectSubscriptions).not.toHaveBeenCalled()
   })
 
@@ -116,7 +115,6 @@ describe('API Route Handlers', () => {
     expect(response.status).toBe(200)
     expect(body.insights[0].title).toBe('pro:테스트 분석')
     expect(body.subscriptions).toEqual([expect.objectContaining({ merchant: '넷플릭스' })])
-    expect(mocks.getProfile).toHaveBeenCalledWith('mock-free-user')
   })
 
   it('rejects a transaction category outside the fixed enum', async () => {
@@ -135,17 +133,28 @@ describe('API Route Handlers', () => {
     expect(mocks.reclassify).not.toHaveBeenCalled()
   })
 
-  it.each<Plan>(['free', 'pro'])('generates %s insights using the server-profile plan', async (plan) => {
-    mocks.setPlan(plan)
+  it('builds Free insights deterministically without the LLM', async () => {
+    mocks.setPlan('free')
 
-    const response = await getInsights(new Request(
-      `http://localhost/api/insights?period=2026-06&plan=${plan === 'free' ? 'pro' : 'free'}`,
-    ))
+    const response = await getInsights(new Request('http://localhost/api/insights?period=2026-06'))
     const body = await response.json()
 
     expect(response.status).toBe(200)
-    expect(body.insights[0].title).toBe(`${plan}:테스트 분석`)
-    expect(mocks.generateInsights).toHaveBeenCalledWith(expect.any(Object), plan)
+    expect(body.insights[0].title).toBe('free:테스트 분석')
+    expect(mocks.buildFreeInsights).toHaveBeenCalledTimes(1)
+    expect(mocks.generateProInsights).not.toHaveBeenCalled()
+  })
+
+  it('uses Opus Pro insights for a Pro user on the insights route', async () => {
+    mocks.setPlan('pro')
+
+    const response = await getInsights(new Request('http://localhost/api/insights?period=2026-06'))
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body.insights[0].title).toBe('pro:테스트 분석')
+    expect(mocks.generateProInsights).toHaveBeenCalledTimes(1)
+    expect(mocks.buildFreeInsights).not.toHaveBeenCalled()
   })
 
   it('truncates mapping samples to 20 rows on the server', async () => {

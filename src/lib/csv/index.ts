@@ -110,7 +110,7 @@ export function requiresManualMapping(result: ColumnMappingResult): boolean {
   return result.confidence < 0.75 || result.missingRequired.length > 0
 }
 
-function normalizeDate(value: string): string | null {
+export function normalizeDate(value: string): string | null {
   const match = value.trim().match(/^(\d{2}|\d{4})[./-](\d{1,2})[./-](\d{1,2})$/)
   if (!match) {
     return null
@@ -133,7 +133,7 @@ function normalizeDate(value: string): string | null {
   return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
-function normalizeAmount(value: string): { amount: number; isCredit: boolean } | null {
+export function normalizeAmount(value: string): { amount: number; isCredit: boolean } | null {
   const trimmed = value.trim()
   const parenthesized = /^\(.*\)$/.test(trimmed)
   const negative = /-/.test(trimmed)

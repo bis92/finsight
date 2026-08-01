@@ -1,7 +1,7 @@
 import type { Direction, NewTransaction } from '@/types'
 
-/** Upper bound on accepted PDF size. Bounds Claude document-extraction cost and
- * request size for a single-file MVP upload. */
+/** Upper bound on accepted PDF size. Bounds PDF parse cost and request size for
+ * a single-file MVP upload. */
 export const MAX_PDF_BYTES = 10 * 1024 * 1024
 
 const PDF_MAGIC = [0x25, 0x50, 0x44, 0x46] as const // %PDF
@@ -52,7 +52,7 @@ function toRows(raw: unknown): unknown[] {
 }
 
 /**
- * Validates and normalizes Claude's PDF extraction output into stored-shape
+ * Validates and normalizes the coordinate-parser output into stored-shape
  * transactions. Amounts become unsigned integers with a separate `direction`;
  * refunds/cancellations normalize to income. Invalid rows are dropped. Category
  * is a placeholder — callers run rule-based `classifyMany` afterwards, matching
