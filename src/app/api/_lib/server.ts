@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { getAuthenticatedUserId } from '@/lib/auth/session'
+import { missingRequiredRoles } from '@/lib/csv/aliases'
 import { getDataSource } from '@/lib/env'
 import { CATEGORIES } from '@/types'
 import type {
@@ -100,9 +101,9 @@ function isMapping(value: unknown): value is ColumnMappingResult['mapping'] {
     return false
   }
 
-  return ['date', 'merchant', 'amount', 'category'].every((role) => {
+  return ['date', 'merchant', 'amount', 'debit', 'credit', 'category'].every((role) => {
     const index = value[role]
-    return index === null || (Number.isInteger(index) && (index as number) >= 0)
+    return index === undefined || index === null || (Number.isInteger(index) && (index as number) >= 0)
   })
 }
 
@@ -110,7 +111,9 @@ export function requireConfirmedMapping(value: unknown): ColumnMappingResult['ma
   if (!isMapping(value)) {
     throw new ApiRouteError(400, '컬럼 매핑이 유효하지 않습니다')
   }
-  if (value.date === null || value.merchant === null || value.amount === null) {
+  // date·merchant + 금액 role(amount|debit|credit) 최소 하나. 은행 출금/입금 매핑은
+  // amount가 null이어도 debit/credit이 있으면 유효하다.
+  if (missingRequiredRoles(value).length > 0) {
     throw new ApiRouteError(400, '필수 컬럼 매핑이 누락되었습니다')
   }
   return value

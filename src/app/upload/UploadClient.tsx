@@ -103,7 +103,7 @@ export function UploadClient() {
     mappingPreview.mutate(buildMappingInput(parsed.headers, parsed.rows), {
       onSuccess: openMapping,
       onError: () => openMapping({
-        mapping: { date: null, merchant: null, amount: null, category: null },
+        mapping: { date: null, merchant: null, amount: null, debit: null, credit: null, category: null },
         confidence: 0,
         missingRequired: ['date', 'merchant', 'amount'],
       }),

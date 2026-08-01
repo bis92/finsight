@@ -12,8 +12,8 @@ import type {
 } from '@/types'
 
 export type ConfirmUploadInput =
-  | { source?: 'csv'; mapping: ColumnMappingResult['mapping']; transactions: NewTransaction[] }
-  | { source: 'pdf'; transactions: NewTransaction[] }
+  | { source?: 'csv'; fileName: string; mapping: ColumnMappingResult['mapping']; transactions: NewTransaction[] }
+  | { source: 'pdf'; fileName: string; transactions: NewTransaction[] }
 
 export function useMappingPreview() {
   return useMutation({

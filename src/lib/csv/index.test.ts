@@ -8,6 +8,7 @@ import {
   detectEncoding,
   parseCsv,
   requiresManualMapping,
+  resolveAmountDirection,
 } from '@/lib/csv'
 import type { ColumnMappingResult } from '@/types'
 
@@ -15,8 +16,42 @@ const mapping: ColumnMappingResult['mapping'] = {
   date: 0,
   merchant: 1,
   amount: 2,
+  debit: null,
+  credit: null,
   category: 3,
 }
+
+describe('resolveAmountDirection', () => {
+  it('derives expense from a bank debit (출금) column', () => {
+    expect(resolveAmountDirection({ debit: '4,500', credit: '' })).toEqual({ amount: 4500, direction: 'expense' })
+  })
+
+  it('derives income from a bank credit (입금) column', () => {
+    expect(resolveAmountDirection({ debit: '', credit: '3,000,000' })).toEqual({ amount: 3_000_000, direction: 'income' })
+  })
+
+  it('drops a bank row where both debit and credit are empty', () => {
+    expect(resolveAmountDirection({ debit: '', credit: '' })).toBeNull()
+  })
+
+  it('prefers debit (expense) when both columns carry a value', () => {
+    expect(resolveAmountDirection({ debit: '1,000', credit: '2,000' })).toEqual({ amount: 1000, direction: 'expense' })
+  })
+
+  it('uses a single amount column with sign for direction', () => {
+    expect(resolveAmountDirection({ amount: '(4,500)' })).toEqual({ amount: 4500, direction: 'income' })
+    expect(resolveAmountDirection({ amount: '4,500' })).toEqual({ amount: 4500, direction: 'expense' })
+  })
+
+  it('reads income keywords from incomeSignalText for a single amount column', () => {
+    expect(resolveAmountDirection({ amount: '3,000', incomeSignalText: '급여 이체' })).toEqual({ amount: 3000, direction: 'income' })
+  })
+
+  it('returns null when nothing resolves to a valid amount', () => {
+    expect(resolveAmountDirection({ amount: '금액없음' })).toBeNull()
+    expect(resolveAmountDirection({})).toBeNull()
+  })
+})
 
 describe('CSV encoding', () => {
   it('detects and decodes a UTF-8 CSV with a BOM', () => {
@@ -152,5 +187,25 @@ describe('applyMapping', () => {
 
     expect(transactions).toHaveLength(1)
     expect(transactions[0]?.merchant).toBe('상점 D')
+  })
+
+  it('derives direction from separate 출금액/입금액 bank columns', () => {
+    const bankMapping: ColumnMappingResult['mapping'] = {
+      date: 0, merchant: 1, amount: null, debit: 2, credit: 3, category: null,
+    }
+    const transactions = applyMapping(
+      ['거래일시', '적요', '출금액', '입금액', '잔액'],
+      [
+        ['2026-07-01', '스타벅스', '4,500', '', '120,000'],
+        ['2026-07-05', '급여', '', '3,000,000', '3,120,000'],
+        ['2026-07-06', '알수없음', '', '', '3,120,000'],
+      ],
+      bankMapping,
+    )
+
+    expect(transactions).toEqual([
+      { uploadId: '', occurredOn: '2026-07-01', merchant: '스타벅스', amount: 4500, direction: 'expense', category: '기타', raw: { 거래일시: '2026-07-01', 적요: '스타벅스', 출금액: '4,500', 입금액: '', 잔액: '120,000' } },
+      { uploadId: '', occurredOn: '2026-07-05', merchant: '급여', amount: 3_000_000, direction: 'income', category: '수입', raw: { 거래일시: '2026-07-05', 적요: '급여', 출금액: '', 입금액: '3,000,000', 잔액: '3,120,000' } },
+    ])
   })
 })

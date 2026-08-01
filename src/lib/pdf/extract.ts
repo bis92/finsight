@@ -1,7 +1,7 @@
 import { getDocumentProxy } from 'unpdf'
 
-import { matchColumnRole } from '@/lib/csv/aliases'
-import { normalizeAmount, normalizeDate } from '@/lib/csv'
+import { hasRequiredRoles, matchColumnRole } from '@/lib/csv/aliases'
+import { normalizeDate, resolveAmountDirection } from '@/lib/csv'
 import { normalizeExtractedTransactions } from '@/lib/pdf'
 import type { ColumnRole, Direction, NewTransaction, PdfExtractionInput } from '@/types'
 
@@ -9,7 +9,6 @@ export type TextItem = { str: string; x: number; y: number }
 export type ColumnAnchor = { role: ColumnRole; lo: number; hi: number }
 
 const Y_TOLERANCE = 3
-const REQUIRED_ROLES: readonly ColumnRole[] = ['date', 'merchant', 'amount']
 
 export function groupIntoRows(items: TextItem[], yTolerance = Y_TOLERANCE): TextItem[][] {
   const rows: TextItem[][] = []
@@ -25,29 +24,31 @@ export function groupIntoRows(items: TextItem[], yTolerance = Y_TOLERANCE): Text
 }
 
 export function detectColumns(row: TextItem[]): ColumnAnchor[] | null {
-  const matched: Array<{ role: ColumnRole; x: number }> = []
+  // 경계는 매칭된 라벨만이 아니라 헤더의 모든 컬럼 x로 잡는다. 그래야 인식 못 하는
+  // 컬럼(카드번호·사업자번호 등)이 자기 x-밴드를 갖고, 그 값이 인접한 date/merchant/
+  // amount 셀에 섞이지 않는다. 미인식 컬럼은 role 없이 anchor만 만들지 않고 건너뛴다.
+  const sorted = [...row].sort((left, right) => left.x - right.x)
   const seen = new Set<ColumnRole>()
-  for (const item of [...row].sort((left, right) => left.x - right.x)) {
+  const anchors: ColumnAnchor[] = []
+  sorted.forEach((item, index) => {
     const role = matchColumnRole(item.str)
-    if (role && !seen.has(role)) {
-      seen.add(role)
-      matched.push({ role, x: item.x })
+    if (!role || seen.has(role)) {
+      return
     }
-  }
-  if (!REQUIRED_ROLES.every((role) => seen.has(role))) {
-    return null
-  }
-
-  const sorted = matched.sort((left, right) => left.x - right.x)
-  return sorted.map((column, index) => {
+    seen.add(role)
     const previous = sorted[index - 1]
     const next = sorted[index + 1]
-    return {
-      role: column.role,
-      lo: previous ? (previous.x + column.x) / 2 : Number.NEGATIVE_INFINITY,
-      hi: next ? (column.x + next.x) / 2 : Number.POSITIVE_INFINITY,
-    }
+    anchors.push({
+      role,
+      lo: previous ? (previous.x + item.x) / 2 : Number.NEGATIVE_INFINITY,
+      hi: next ? (item.x + next.x) / 2 : Number.POSITIVE_INFINITY,
+    })
   })
+
+  if (!hasRequiredRoles(seen)) {
+    return null
+  }
+  return anchors
 }
 
 export function rowToCells(row: TextItem[], columns: ColumnAnchor[]): Partial<Record<ColumnRole, string>> {
@@ -73,17 +74,22 @@ export function extractRowsToTransactions(rows: TextItem[][]): NewTransaction[] 
 
     const cells = rowToCells(row, columns)
     const occurredOn = normalizeDate(cells.date ?? '')
-    const amount = normalizeAmount(cells.amount ?? '')
     const merchant = (cells.merchant ?? '').trim()
-    if (!occurredOn || !amount || merchant.length === 0) {
+    const resolved = resolveAmountDirection({
+      amount: cells.amount,
+      debit: cells.debit,
+      credit: cells.credit,
+      incomeSignalText: merchant,
+    })
+    if (!occurredOn || !resolved || merchant.length === 0) {
       continue
     }
 
     extracted.push({
       occurredOn,
       merchant,
-      amount: amount.amount,
-      direction: amount.isCredit ? 'income' : 'expense',
+      amount: resolved.amount,
+      direction: resolved.direction,
     })
   }
 

@@ -154,6 +154,41 @@ export function normalizeAmount(value: string): { amount: number; isCredit: bool
   return { amount, isCredit: parenthesized || negative }
 }
 
+/**
+ * 셀 값에서 금액(부호 없는 정수)과 direction을 도출하는 단일 진실 원천.
+ * CSV(applyMapping)와 PDF(extractRowsToTransactions) 양쪽이 공유한다.
+ *
+ * - debit/credit(은행 이중 컬럼)이 하나라도 있으면 그것으로 판정: credit만 → income,
+ *   debit → expense(둘 다 값이 있으면 debit=expense 우선), 둘 다 무효 → null.
+ * - 없으면 amount 단일 컬럼: 부호(괄호/음수) 또는 incomeSignalText의 수입 키워드로 direction.
+ */
+export function resolveAmountDirection(cells: {
+  amount?: string
+  debit?: string
+  credit?: string
+  incomeSignalText?: string
+}): { amount: number; direction: Direction } | null {
+  const debit = cells.debit ? normalizeAmount(cells.debit) : null
+  const credit = cells.credit ? normalizeAmount(cells.credit) : null
+
+  if (debit || credit) {
+    if (debit) {
+      return { amount: debit.amount, direction: 'expense' }
+    }
+    return { amount: credit!.amount, direction: 'income' }
+  }
+
+  const single = cells.amount ? normalizeAmount(cells.amount) : null
+  if (!single) {
+    return null
+  }
+  const direction: Direction =
+    single.isCredit || (cells.incomeSignalText ? INCOME_SIGNAL.test(cells.incomeSignalText) : false)
+      ? 'income'
+      : 'expense'
+  return { amount: single.amount, direction }
+}
+
 function buildRaw(headers: string[], row: string[]): Record<string, unknown> {
   return Object.fromEntries(headers.map((header, index) => [header, row[index] ?? '']))
 }
@@ -167,37 +202,46 @@ export function applyMapping(
   rows: string[][],
   mapping: ColumnMappingResult['mapping'],
 ): NewTransaction[] {
-  const { date: dateIndex, merchant: merchantIndex, amount: amountIndex } = mapping
+  const { date: dateIndex, merchant: merchantIndex } = mapping
+  const amountIndex = hasUsableIndex(mapping.amount, headers) ? mapping.amount : null
+  const debitIndex = hasUsableIndex(mapping.debit, headers) ? mapping.debit : null
+  const creditIndex = hasUsableIndex(mapping.credit, headers) ? mapping.credit : null
 
   if (
     !hasUsableIndex(dateIndex, headers) ||
     !hasUsableIndex(merchantIndex, headers) ||
-    !hasUsableIndex(amountIndex, headers)
+    (amountIndex === null && debitIndex === null && creditIndex === null)
   ) {
     return []
   }
 
+  const cellAt = (row: string[], index: number | null): string | undefined =>
+    index === null ? undefined : row[index]
+
   return rows.flatMap((row): NewTransaction[] => {
     const occurredOn = normalizeDate(row[dateIndex] ?? '')
-    const normalizedAmount = normalizeAmount(row[amountIndex] ?? '')
-
-    if (!occurredOn || !normalizedAmount) {
+    if (!occurredOn) {
       return []
     }
 
-    const raw = buildRaw(headers, row)
-    const rowSignals = row.join(' ')
-    const direction: Direction =
-      normalizedAmount.isCredit || INCOME_SIGNAL.test(rowSignals) ? 'income' : 'expense'
+    const resolved = resolveAmountDirection({
+      amount: cellAt(row, amountIndex),
+      debit: cellAt(row, debitIndex),
+      credit: cellAt(row, creditIndex),
+      incomeSignalText: row.join(' '),
+    })
+    if (!resolved) {
+      return []
+    }
 
     return [{
       uploadId: '',
       occurredOn,
       merchant: row[merchantIndex] ?? '',
-      amount: normalizedAmount.amount,
-      direction,
-      category: direction === 'income' ? '수입' : '기타',
-      raw,
+      amount: resolved.amount,
+      direction: resolved.direction,
+      category: resolved.direction === 'income' ? '수입' : '기타',
+      raw: buildRaw(headers, row),
     }]
   })
 }
