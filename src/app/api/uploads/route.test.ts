@@ -41,7 +41,7 @@ vi.mock('@/services', () => ({
 
 import { POST } from './route'
 
-const mapping = { date: 0, merchant: 1, amount: 2, category: null }
+const mapping = { date: 0, merchant: 1, amount: 2, debit: null, credit: null, category: null }
 const parsingUpload = {
   id: 'upload-1',
   userId: 'user-1',
@@ -52,15 +52,18 @@ const parsingUpload = {
 }
 const doneUpload = { ...parsingUpload, status: 'done' as const }
 
-function liveRequest(csv = '이용일자,가맹점명,이용금액\n2026-06-01,식당,12300\n2026-06-02,급여 입금,-3200000') {
-  const entries = new Map<string, FormDataEntryValue>([
-    ['file', new File([csv], 'card.csv', { type: 'text/csv' })],
-    ['mapping', JSON.stringify(mapping)],
-  ])
-  const form = { get: (key: string) => entries.get(key) ?? null } as FormData
-  const request = new Request('http://localhost/api/uploads', { method: 'POST' })
-  vi.spyOn(request, 'formData').mockResolvedValue(form)
-  return request
+// 클라이언트는 브라우저/서버에서 추출한 거래를 JSON으로 보낸다(CSV·PDF 공통).
+const liveTransactions = [
+  { uploadId: '', occurredOn: '2026-06-01', merchant: '식당', amount: 12_300, direction: 'expense' as const, category: '식비' as const, raw: {} },
+  { uploadId: '', occurredOn: '2026-06-02', merchant: '급여', amount: 3_200_000, direction: 'income' as const, category: '수입' as const, raw: {} },
+]
+
+function liveRequest(body: Record<string, unknown> = { source: 'csv', fileName: 'card.csv', mapping, transactions: liveTransactions }) {
+  return new Request('http://localhost/api/uploads', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  })
 }
 
 describe('POST /api/uploads', () => {
@@ -83,7 +86,7 @@ describe('POST /api/uploads', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 200 })))
   })
 
-  it('parses one CSV file, persists normalized transactions, and transitions parsing to done', async () => {
+  it('persists client-confirmed CSV transactions and transitions parsing to done', async () => {
     const response = await POST(liveRequest())
 
     expect(response.status).toBe(201)
@@ -94,23 +97,37 @@ describe('POST /api/uploads', () => {
       expect.stringMatching(/^user-1\//),
     )
     expect(mocks.insertMany).toHaveBeenCalledWith('user-1', [
-      expect.objectContaining({
-        uploadId: 'upload-1',
-        occurredOn: '2026-06-01',
-        merchant: '식당',
-        amount: 12_300,
-        direction: 'expense',
-      }),
-      expect.objectContaining({
-        uploadId: 'upload-1',
-        amount: 3_200_000,
-        direction: 'income',
-        category: '수입',
-      }),
+      { ...liveTransactions[0], uploadId: 'upload-1' },
+      { ...liveTransactions[1], uploadId: 'upload-1' },
     ])
     expect(mocks.setUploadStatus).toHaveBeenCalledWith('user-1', 'upload-1', 'done')
     expect(mocks.mapColumns).not.toHaveBeenCalled()
     expect(mocks.generateInsights).not.toHaveBeenCalled()
+  })
+
+  it('commits PDF-extracted transactions in live mode without a column mapping', async () => {
+    const pdfTransactions = [
+      { uploadId: '', occurredOn: '2026-07-01', merchant: '스타벅스', amount: 4_500, direction: 'expense' as const, category: '기타' as const, raw: {} },
+    ]
+    const response = await POST(liveRequest({ source: 'pdf', fileName: 'report.pdf', transactions: pdfTransactions }))
+
+    expect(response.status).toBe(201)
+    expect(mocks.createUpload).toHaveBeenCalledWith('user-1', 'report.pdf', expect.stringMatching(/^user-1\//))
+    expect(mocks.insertMany).toHaveBeenCalledWith('user-1', [{ ...pdfTransactions[0], uploadId: 'upload-1' }])
+    expect(mocks.setUploadStatus).toHaveBeenCalledWith('user-1', 'upload-1', 'done')
+  })
+
+  it('rejects a live CSV upload whose mapping is missing required columns', async () => {
+    const response = await POST(liveRequest({
+      source: 'csv',
+      fileName: 'card.csv',
+      mapping: { date: null, merchant: 1, amount: null, debit: null, credit: null, category: null },
+      transactions: liveTransactions,
+    }))
+
+    expect(response.status).toBe(400)
+    expect(mocks.createUpload).not.toHaveBeenCalled()
+    expect(mocks.insertMany).not.toHaveBeenCalled()
   })
 
   it('transitions parsing to error and hides persistence details from the response', async () => {

@@ -89,7 +89,7 @@ function PdfReview({
 
   const confirm = () => {
     if (transactions.length === 0) return
-    upload.mutate({ source: 'pdf', transactions }, {
+    upload.mutate({ source: 'pdf', fileName: draft.fileName, transactions }, {
       onSuccess: () => {
         sessionStorage.removeItem(UPLOAD_SESSION_KEY)
         onDone()
@@ -169,7 +169,7 @@ function CsvMapping({
     if (!mapping || !canConfirm) return
     const transactions = classifyMany(applyMapping(draft.headers, draft.rows, mapping))
     if (transactions.length === 0) return
-    upload.mutate({ source: 'csv', mapping, transactions }, {
+    upload.mutate({ source: 'csv', fileName: draft.fileName, mapping, transactions }, {
       onSuccess: () => {
         sessionStorage.removeItem(UPLOAD_SESSION_KEY)
         onDone()

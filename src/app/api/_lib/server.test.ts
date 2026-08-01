@@ -10,9 +10,31 @@ vi.mock('@/lib/auth/session', () => ({
   getAuthenticatedUserId: getAuthenticatedUserIdMock,
 }))
 
-import { ApiRouteError, resolveCurrentUserId } from '@/app/api/_lib/server'
+import { ApiRouteError, requireConfirmedMapping, resolveCurrentUserId } from '@/app/api/_lib/server'
 
 const originalDataSource = process.env.DATA_SOURCE
+
+describe('requireConfirmedMapping', () => {
+  it('accepts a card mapping with a single amount column', () => {
+    const mapping = { date: 0, merchant: 1, amount: 2, debit: null, credit: null, category: 3 }
+    expect(requireConfirmedMapping(mapping)).toBe(mapping)
+  })
+
+  it('accepts a bank mapping with 출금/입금 columns and no amount column', () => {
+    const mapping = { date: 0, merchant: 1, amount: null, debit: 2, credit: 3, category: null }
+    expect(requireConfirmedMapping(mapping)).toBe(mapping)
+  })
+
+  it('rejects a mapping missing every amount-bearing column', () => {
+    const mapping = { date: 0, merchant: 1, amount: null, debit: null, credit: null, category: null }
+    expect(() => requireConfirmedMapping(mapping)).toThrow(ApiRouteError)
+  })
+
+  it('rejects a mapping missing a core role', () => {
+    const mapping = { date: null, merchant: 1, amount: 2, debit: null, credit: null, category: null }
+    expect(() => requireConfirmedMapping(mapping)).toThrow(ApiRouteError)
+  })
+})
 
 describe('resolveCurrentUserId', () => {
   afterEach(() => {
