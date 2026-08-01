@@ -34,6 +34,24 @@ export function classifyMany<T extends ClassifiableTransaction>(
   return txns.map((txn) => ({ ...txn, category: classify(txn) }))
 }
 
+/**
+ * 거래 목록에서 가장 최근 월(YYYY-MM)을 활성 기간으로 도출한다.
+ * 업로드 데이터가 어느 달이든 자동으로 맞추기 위함. 거래가 없으면 fallback 사용.
+ */
+export function latestPeriod(
+  txns: readonly Transaction[],
+  fallback: string,
+): string {
+  let latest = ''
+  for (const txn of txns) {
+    const period = txn.occurredOn.slice(0, 7)
+    if (period > latest) {
+      latest = period
+    }
+  }
+  return latest || fallback
+}
+
 export function aggregate(
   txns: readonly Transaction[],
   period: string,
@@ -44,6 +62,10 @@ export function aggregate(
   const merchantTotals = new Map<string, { amount: number; count: number }>()
 
   for (const txn of txns) {
+    if (txn.occurredOn.slice(0, 7) !== period) {
+      continue
+    }
+
     if (txn.direction === 'income') {
       totalIncome += txn.amount
       continue
