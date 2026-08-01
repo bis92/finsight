@@ -7,7 +7,7 @@ CSV(은행 거래내역 · 카드 명세서)를 업로드하면 LLM이 분석해
 - TypeScript (strict mode)
 - Tailwind CSS
 - Supabase — Auth · Postgres · Storage
-- Claude API (`@anthropic-ai/sdk`) — CSV 컬럼 자동매핑 + 분석. 플랜별 모델: 컬럼 매핑·Free 분석=Sonnet 4.6(`claude-sonnet-4-6`), Pro 지출 진단 리포트=Opus 4.8(`claude-opus-4-8`)
+- Claude API (`@anthropic-ai/sdk`) — CSV 컬럼 매핑·Free 분석·PDF 추출은 내부 규칙/파서 엔진(LLM 미사용), Pro 지출 진단 리포트·구독 감지 검증만 Opus 4.8(`claude-opus-4-8`)
 - Polar — 구독 결제 (Merchant of Record)
 - Vitest — 테스트
 - 배포: Vercel
@@ -53,3 +53,4 @@ npm run test     # Vitest (CI 모드, watch 아님)
 | 2026-07-17 | blocked step metadata 커밋 + JSON 개행 | scripts/execute.py | blocked 분기 미커밋으로 워킹트리 오염 |
 | 2026-07-26 | 위험명령 차단 훅 수정 (`$CLAUDE_TOOL_INPUT`→stdin grep, exit 2) | settings.json | 존재하지 않는 env var로 훅이 무력화돼 rm -rf·force push 미차단 (jq 미설치라 stdin 직접 grep) |
 | 2026-07-26 | stale 워크트리·브랜치 정리 | worktrees/landing-optimize, feat-landing-optimize | 이미 main 병합된 워크트리가 매 세션 가짜 동시성 경보 유발 |
+| 2026-07-30 | LLM을 Pro Opus로 한정, CSV매핑·PDF추출·Free인사이트 내부 엔진화 (unpdf 도입) | src/lib/csv, src/lib/pdf/extract, src/lib/analysis/insights, services, api routes | LLM 비용/의존 축소 — 결정적 내부 처리 |

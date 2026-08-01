@@ -75,7 +75,7 @@ const INSIGHTS_SYSTEM_PROMPT = `당신은 한국 개인 소비자의 소비 내�
 <aggregate_snapshot>에는 애플리케이션 코드가 계산한 확정 합계, 비율, 순지출, 카테고리 및 가맹점 순위가 있습니다.
 합계, 비율, 순지출, 절감액을 계산하지 마세요. 제공된 숫자를 근거로 해석과 설명만 작성하세요.
 segments의 text는 HTML이나 마크다운 없는 평문으로 작성하고, 강조할 구간은 emphasis로만 표시하세요.
-Free 플랜은 summary 1~2개만, Pro 플랜은 diagnosis와 suggestion을 포함한 여러 항목을 작성하세요.
+diagnosis와 suggestion을 포함한 여러 항목을 작성하세요.
 savingKrw는 suggestion에만 제공하며, 입력에 근거가 있는 비음수 정수 원화 금액이어야 합니다.`
 
 const SUBSCRIPTIONS_SYSTEM_PROMPT = `당신은 정기구독 후보를 검토하는 한국 금융 데이터 분석가입니다.

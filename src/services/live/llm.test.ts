@@ -70,7 +70,7 @@ describe('liveLlmService.generateProInsights', () => {
     mockJson({ insights: [
       { title: '잘못된 종류', kind: 'other', segments: [{ text: '제거', emphasis: false }] },
       { title: '빈 본문', kind: 'summary', segments: [] },
-      { title: '진단', kind: 'diagnosis', segments: [{ text: '<strong>안전</strong> **본문**', emphasis: 'yes' }], savingKrw: 3000 },
+      { title: '진단', kind: 'diagnosis', segments: [{ text: '<strong>안전</strong> **본문**', emphasis: 'yes' }, { text: 42, emphasis: false }], savingKrw: 3000 },
       { title: '절감', kind: 'suggestion', segments: [{ text: '절감 가능', emphasis: true }], savingKrw: -1234.6 },
       { title: '반올림', kind: 'suggestion', segments: [{ text: '추가 절감', emphasis: false }], savingKrw: 1234.6 },
     ] })
