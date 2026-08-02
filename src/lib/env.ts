@@ -50,6 +50,18 @@ export function getPolarProductId(): string {
   return getRequiredEnvironmentVariable('POLAR_PRODUCT_ID')
 }
 
+export type PolarServer = 'sandbox' | 'production'
+
+export function getPolarServer(): PolarServer {
+  const server = process.env.POLAR_SERVER ?? 'production'
+
+  if (server !== 'sandbox' && server !== 'production') {
+    throw new Error('POLAR_SERVER must be either "sandbox" or "production"')
+  }
+
+  return server
+}
+
 export function getSiteUrl(): string {
   return getRequiredEnvironmentVariable('NEXT_PUBLIC_SITE_URL')
 }

@@ -5,12 +5,14 @@ vi.mock('server-only', () => ({}))
 import {
   getAnthropicApiKey,
   getDataSource,
+  getPolarServer,
   getSupabaseAnonKey,
   getSupabaseServiceRoleKey,
   getSupabaseUrl,
 } from '@/lib/env'
 
 const originalDataSource = process.env.DATA_SOURCE
+const originalPolarServer = process.env.POLAR_SERVER
 const supabaseEnvironment = {
   ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -32,6 +34,37 @@ describe('getDataSource', () => {
     delete process.env.DATA_SOURCE
 
     expect(getDataSource()).toBe('mock')
+  })
+})
+
+describe('getPolarServer', () => {
+  afterEach(() => {
+    if (originalPolarServer === undefined) {
+      delete process.env.POLAR_SERVER
+      return
+    }
+
+    process.env.POLAR_SERVER = originalPolarServer
+  })
+
+  it('returns production when POLAR_SERVER is not set', () => {
+    delete process.env.POLAR_SERVER
+
+    expect(getPolarServer()).toBe('production')
+  })
+
+  it('returns sandbox when POLAR_SERVER is sandbox', () => {
+    process.env.POLAR_SERVER = 'sandbox'
+
+    expect(getPolarServer()).toBe('sandbox')
+  })
+
+  it('throws when POLAR_SERVER is an unsupported value', () => {
+    process.env.POLAR_SERVER = 'staging'
+
+    expect(getPolarServer).toThrow(
+      'POLAR_SERVER must be either "sandbox" or "production"',
+    )
   })
 })
 

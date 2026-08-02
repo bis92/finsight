@@ -14,6 +14,7 @@
 | `POLAR_ACCESS_TOKEN` | **서버 전용 시크릿** | Polar 조직 설정의 API access token | `src/lib/polar/client.ts`, `src/app/api/checkout/route.ts` — 서버 checkout 생성 |
 | `POLAR_WEBHOOK_SECRET` | **서버 전용 시크릿** | Polar webhook endpoint 설정의 signing secret | `src/app/api/webhooks/polar/route.ts` — 웹훅 서명 검증 |
 | `POLAR_PRODUCT_ID` | 서버 전용 설정 | Polar product catalog의 Pro product ID | `src/app/api/checkout/route.ts` — checkout 대상 상품 지정 |
+| `POLAR_SERVER` | 서버 전용 설정 | 직접 설정 (`production` 기본, `sandbox`) | `src/lib/polar/client.ts` — Polar API 접속 대상. **토큰 발급 환경과 반드시 일치**(sandbox 토큰은 `sandbox`) |
 | `DATA_SOURCE` | 서버 전용 설정 | 직접 설정 (`mock` 또는 `live`) | `src/lib/env.ts`, `src/services/index.ts`, `src/middleware.ts` — mock/live 구현 선택; 기본값은 `mock` |
 
 `NEXT_PUBLIC_*` 값은 공개되어도 되는 설정만 사용한다. 특히 `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `POLAR_ACCESS_TOKEN`, `POLAR_WEBHOOK_SECRET`에는 절대 이 접두사를 붙이지 않는다.
