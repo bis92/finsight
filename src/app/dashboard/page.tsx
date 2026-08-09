@@ -1,4 +1,4 @@
-import { TopNav } from '@/components/ui'
+import { AppShell } from '@/components/ui'
 
 import { DashboardClient } from './DashboardClient'
 
@@ -6,9 +6,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const params = await searchParams
 
   return (
-    <>
-      <TopNav />
+    <AppShell>
       <DashboardClient guest={params.guest === '1'} />
-    </>
+    </AppShell>
   )
 }

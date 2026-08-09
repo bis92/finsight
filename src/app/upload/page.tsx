@@ -1,7 +1,7 @@
-import { TopNav } from '@/components/ui'
+import { AppShell } from '@/components/ui'
 
 import { UploadClient } from './UploadClient'
 
 export default function UploadPage() {
-  return <><TopNav /><UploadClient /></>
+  return <AppShell><UploadClient /></AppShell>
 }
