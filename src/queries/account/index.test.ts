@@ -14,8 +14,6 @@ vi.mock('@/lib/apiClient', async () => {
 
 import { useAccount } from './index'
 
-globalThis.IS_REACT_ACT_ENVIRONMENT = true
-
 let container: HTMLDivElement
 let root: Root
 let latest: ReturnType<typeof useAccount>

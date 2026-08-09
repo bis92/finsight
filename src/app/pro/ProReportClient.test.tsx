@@ -7,8 +7,6 @@ import { apiClient } from '@/lib/apiClient'
 
 import { ProReportClient } from './ProReportClient'
 
-globalThis.IS_REACT_ACT_ENVIRONMENT = true
-
 const state = vi.hoisted(() => ({ plan: 'free' as Plan }))
 const post = vi.spyOn(apiClient, 'post')
 const transactions: Transaction[] = [

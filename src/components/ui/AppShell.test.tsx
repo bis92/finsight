@@ -29,8 +29,6 @@ vi.mock('./ThemeToggle', () => ({ ThemeToggle: () => null }))
 import { ApiError } from '@/lib/apiClient'
 import { AppShell } from './AppShell'
 
-globalThis.IS_REACT_ACT_ENVIRONMENT = true
-
 let container: HTMLDivElement
 let root: Root
 

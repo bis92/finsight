@@ -6,8 +6,6 @@ import type { Transaction } from '@/types'
 
 import { DashboardClient } from './DashboardClient'
 
-globalThis.IS_REACT_ACT_ENVIRONMENT = true
-
 const mutate = vi.fn()
 
 const transactions: Transaction[] = [
