@@ -71,11 +71,13 @@ jobs:
         with:
           node-version: 22
       - uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: review-verdict
       - id: gate
         run: node scripts/review-gate.mjs review-verdict.json
       - name: 리뷰 제출
+        if: always() && steps.gate.outputs.event != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
