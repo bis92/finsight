@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 
-import { apiClient } from '@/lib/apiClient'
+import { ApiError, apiClient } from '@/lib/apiClient'
 import { createSupabaseBrowserClient } from '@/lib/supabase/browser-client'
 import { useAccount } from '@/queries/account'
 
@@ -50,24 +50,31 @@ function NavLinks({ pathname, onNavigate }: { pathname: string; onNavigate?: () 
 
 function AccountBlock() {
   const router = useRouter()
-  const { account, isUnauthenticated } = useAccount()
+  const { account, isUnauthenticated, isError, isPending } = useAccount()
   const [busy, setBusy] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const logout = async () => {
+    setActionError(null)
     setBusy(true)
     try {
       await createSupabaseBrowserClient().auth.signOut()
       router.push('/login')
+    } catch {
+      setActionError('로그아웃에 실패했어요. 다시 시도해 주세요')
     } finally {
       setBusy(false)
     }
   }
 
   const manageSubscription = async () => {
+    setActionError(null)
     setBusy(true)
     try {
       const { url } = await apiClient.post<{ url: string }>('/api/portal', {})
       window.location.href = url
+    } catch (err) {
+      setActionError(err instanceof ApiError ? err.message : '요청을 처리하지 못했어요')
     } finally {
       setBusy(false)
     }
@@ -86,7 +93,15 @@ function AccountBlock() {
     )
   }
 
-  if (!account) {
+  if (isError) {
+    return (
+      <div className="border-t border-hairline pt-md text-caption text-muted">
+        계정 정보를 불러오지 못했어요
+      </div>
+    )
+  }
+
+  if (isPending || !account) {
     return <div className="border-t border-hairline pt-md text-caption text-muted">불러오는 중…</div>
   }
 
@@ -127,6 +142,12 @@ function AccountBlock() {
       >
         로그아웃
       </button>
+
+      {actionError ? (
+        <p role="alert" className="text-body-sm text-semantic-down">
+          {actionError}
+        </p>
+      ) : null}
     </div>
   )
 }

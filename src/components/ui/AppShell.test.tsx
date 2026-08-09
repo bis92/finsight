@@ -26,6 +26,7 @@ vi.mock('@/lib/apiClient', async () => {
 // matchMedia 의존 회피
 vi.mock('./ThemeToggle', () => ({ ThemeToggle: () => null }))
 
+import { ApiError } from '@/lib/apiClient'
 import { AppShell } from './AppShell'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
@@ -193,5 +194,43 @@ describe('AppShell', () => {
         (el) => el.getAttribute('aria-label') === '사이드바',
       ),
     ).toBeFalsy()
+  })
+
+  // Finding 1 — non-401 load error shows '계정 정보를 불러오지 못했어요'
+  it('shows error affordance (not spinner) when account query has a non-401 error', async () => {
+    mocks.useAccount.mockReturnValue({
+      account: undefined,
+      isUnauthenticated: false,
+      isError: true,
+      isPending: false,
+      error: new ApiError(500, 'internal server error'),
+    })
+    await render()
+
+    expect(container.textContent).toContain('계정 정보를 불러오지 못했어요')
+    expect(container.textContent).not.toContain('불러오는 중…')
+  })
+
+  // Finding 2 — manageSubscription surfaces ApiError message
+  it('shows ApiError message when 구독 관리 call fails with a known error', async () => {
+    mocks.useAccount.mockReturnValue({
+      account: { email: 'me@finsight.dev', plan: 'pro' },
+      isUnauthenticated: false,
+    })
+    mocks.post.mockRejectedValue(new ApiError(400, '연결된 구독 정보를 찾을 수 없습니다'))
+
+    await render()
+
+    await act(async () => {
+      findByText('구독 관리')?.click()
+    })
+    // flush microtasks
+    await act(async () => {
+      await new Promise<void>((resolve) => setTimeout(resolve, 0))
+    })
+
+    const alert = container.querySelector('[role="alert"]')
+    expect(alert).toBeTruthy()
+    expect(alert?.textContent).toContain('연결된 구독 정보를 찾을 수 없습니다')
   })
 })
