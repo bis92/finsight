@@ -3,20 +3,25 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('server-only', () => ({}))
 
 const mocks = vi.hoisted(() => ({
+  getAuthenticatedUser: vi.fn(),
   getAuthenticatedUserId: vi.fn(),
   createSupabaseServerClient: vi.fn(),
   removeObjects: vi.fn(),
+  getProfile: vi.fn(),
 }))
 
 vi.mock('@/lib/auth/session', () => ({
+  getAuthenticatedUser: mocks.getAuthenticatedUser,
+  // DELETE 경로가 참조하는 기존 export 보존
   getAuthenticatedUserId: mocks.getAuthenticatedUserId,
 }))
 vi.mock('@/lib/supabase/server-client', () => ({
   createSupabaseServerClient: mocks.createSupabaseServerClient,
 }))
 vi.mock('@/lib/supabase/storage', () => ({ removeObjects: mocks.removeObjects }))
+vi.mock('@/services', () => ({ getProfileService: () => mocks.getProfile }))
 
-import { DELETE } from './route'
+import { DELETE, GET } from './route'
 
 function createClient(options?: { deleteErrorTable?: string; foreignPath?: boolean }) {
   const calls: Array<{ operation: string; table: string; column?: string; value?: string }> = []
@@ -122,5 +127,41 @@ describe('DELETE /api/account', () => {
     expect(JSON.stringify(body)).not.toContain('database secret')
     expect(consoleError).toHaveBeenCalled()
     consoleError.mockRestore()
+  })
+})
+
+describe('GET /api/account', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.unstubAllEnvs()
+    vi.stubEnv('DATA_SOURCE', 'live')
+    mocks.getAuthenticatedUser.mockResolvedValue({ id: 'user-1', email: 'me@finsight.dev' })
+    mocks.getProfile.mockResolvedValue({
+      id: 'user-1',
+      plan: 'pro',
+      polarCustomerId: 'customer-1',
+      polarSubscriptionId: 'sub-1',
+    })
+  })
+
+  it('returns the authenticated account email and plan', async () => {
+    const response = await GET()
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toEqual({
+      email: 'me@finsight.dev',
+      plan: 'pro',
+    })
+    expect(mocks.getProfile).toHaveBeenCalledWith('user-1')
+  })
+
+  it('returns 401 without touching the profile when unauthenticated', async () => {
+    mocks.getAuthenticatedUser.mockResolvedValue(null)
+
+    const response = await GET()
+
+    expect(response.status).toBe(401)
+    await expect(response.json()).resolves.toEqual({ message: '인증이 필요합니다' })
+    expect(mocks.getProfile).not.toHaveBeenCalled()
   })
 })

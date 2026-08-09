@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { buildFreeInsights } from '@/lib/analysis/insights'
-import { getAuthenticatedUserId } from '@/lib/auth/session'
+import { getAuthenticatedUser, getAuthenticatedUserId } from '@/lib/auth/session'
 import { missingRequiredRoles } from '@/lib/csv/aliases'
 import { getDataSource } from '@/lib/env'
 import type { LlmService } from '@/services/types'
@@ -16,6 +16,7 @@ import type {
 } from '@/types'
 
 const MOCK_CURRENT_USER_ID = 'mock-free-user'
+const MOCK_CURRENT_USER_EMAIL = 'mock-free-user@finsight.dev'
 export const INTERNAL_ERROR_MESSAGE = '일시적인 오류가 발생했습니다'
 
 export class ApiRouteError extends Error {
@@ -39,6 +40,22 @@ export async function resolveCurrentUserId(): Promise<string> {
   }
 
   return userId
+}
+
+export async function resolveCurrentUser(): Promise<{
+  id: string
+  email: string | null
+}> {
+  if (getDataSource() === 'mock') {
+    return { id: MOCK_CURRENT_USER_ID, email: MOCK_CURRENT_USER_EMAIL }
+  }
+
+  const user = await getAuthenticatedUser()
+  if (!user) {
+    throw new ApiRouteError(401, '인증이 필요합니다')
+  }
+
+  return user
 }
 
 export function isRecord(value: unknown): value is Record<string, unknown> {

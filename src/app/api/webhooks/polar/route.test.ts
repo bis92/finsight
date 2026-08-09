@@ -142,6 +142,28 @@ describe('POST /api/webhooks/polar', () => {
     expect(eq).toHaveBeenCalledWith('id', 'user-1')
   })
 
+  it('ignores a stale revoked event for a subscription the user has already replaced', async () => {
+    mocks.validateEvent.mockReturnValue({
+      type: 'subscription.revoked',
+      data: {
+        id: 'subscription-old',
+        customerId: 'customer-1',
+        metadata: { userId: 'user-1' },
+        customer: { externalId: null },
+      },
+    })
+    // The profile now points at a newer, still-active subscription.
+    maybeSingle.mockResolvedValue({
+      data: { polar_subscription_id: 'subscription-new' },
+      error: null,
+    })
+
+    const response = await POST(request('{}'))
+
+    expect(response.status).toBe(200)
+    expect(update).not.toHaveBeenCalled()
+  })
+
   it('keeps pro access when cancellation is only scheduled for period end', async () => {
     mocks.validateEvent.mockReturnValue({
       type: 'subscription.canceled',

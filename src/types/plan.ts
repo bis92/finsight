@@ -6,3 +6,8 @@ export type Profile = {
   polarSubscriptionId?: string | null
   polarCustomerId?: string | null
 }
+
+export type AccountSummary = {
+  email: string | null
+  plan: Plan
+}
