@@ -112,11 +112,38 @@ async function activatePlan(event: PlanEvent): Promise<void> {
   if (error) throw error
 }
 
+async function currentSubscriptionId(userId: string): Promise<string | null> {
+  const { data, error } = await createSupabaseServiceRoleClient()
+    .from('profiles')
+    .select('polar_subscription_id')
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (error) throw error
+  const stored = data?.polar_subscription_id
+  return typeof stored === 'string' && stored.length > 0 ? stored : null
+}
+
 async function deactivatePlan(event: PlanEvent): Promise<void> {
+  const { subscriptionId } = polarIds(event)
   const userId = await resolveUserId(event)
 
   if (!userId) {
     console.warn('Polar webhook user mapping was not found')
+    return
+  }
+
+  // Out-of-order / retried webhooks can deliver a `revoked` event for a
+  // subscription the user has already replaced with a newer, active one.
+  // Only downgrade when the revoked subscription is still the current one;
+  // otherwise a stale revoke would strip access from a paying subscriber.
+  const storedSubscriptionId = await currentSubscriptionId(userId)
+  if (
+    subscriptionId &&
+    storedSubscriptionId &&
+    storedSubscriptionId !== subscriptionId
+  ) {
+    console.warn('Ignoring stale Polar revoke for a non-current subscription')
     return
   }
 
