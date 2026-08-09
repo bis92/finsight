@@ -1,0 +1,97 @@
+# PR 자동 리뷰 워크플로우: checks → llm-review → gate
+#
+# 액션 입력 키 검증 결과 (2026-08-09):
+#   uses: anthropics/claude-code-action@v1  ← v1 태그 존재 확인 (→ v1.0.189)
+#   with.anthropic_api_key                  ← action.yml inputs에 존재 확인
+#   with.prompt                             ← action.yml inputs에 존재 확인
+#
+name: PR Review
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+
+permissions:
+  contents: write        # auto-merge 활성화
+  pull-requests: write   # 리뷰(approve/request-changes) 제출
+
+concurrency:
+  group: pr-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npx tsc --noEmit
+      - run: npm run test
+
+  llm-review:
+    needs: checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # base…head diff 위해 전체 히스토리
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            review-code 스킬을 CI 모드로 실행하라.
+            BASE=${{ github.event.pull_request.base.sha }}
+            HEAD=${{ github.event.pull_request.head.sha }}
+            차원별 서브에이전트를 병렬로 띄워 리뷰하고, PR에 요약·인라인 코멘트를 남긴 뒤,
+            워크스페이스 루트에 review-verdict.json 을 계약 스키마대로 써라.
+      - name: verdict 보장 (fail-closed)
+        if: always()
+        run: |
+          test -f review-verdict.json || \
+            echo '{"verdict":"Blocked","counts":{"critical":1,"major":0,"minor":0,"nit":0},"automerge":false}' > review-verdict.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: review-verdict
+          path: review-verdict.json
+
+  gate:
+    needs: llm-review
+    if: always()          # llm-review 실패해도 gate가 돌아 fail-closed 판정
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: review-verdict
+      - id: gate
+        run: node scripts/review-gate.mjs review-verdict.json
+      - name: 리뷰 제출
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR=${{ github.event.pull_request.number }}
+          if [ "${{ steps.gate.outputs.event }}" = "REQUEST_CHANGES" ]; then
+            gh pr review "$PR" --request-changes --body "🚫 review-code: major/critical 발견 — 머지 차단"
+          else
+            gh pr review "$PR" --approve --body "✅ review-code 자동 승인"
+          fi
+      - name: 자동 머지 활성화
+        if: steps.gate.outputs.automerge == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge ${{ github.event.pull_request.number }} --auto --squash
+      - name: 게이트 강제 (fail-closed)
+        if: steps.gate.outputs.blocked == 'true'
+        run: |
+          echo "major/critical 존재 → required check 실패로 머지 차단"
+          exit 1
