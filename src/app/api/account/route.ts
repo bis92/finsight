@@ -3,8 +3,18 @@ import { NextResponse } from 'next/server'
 import { getAuthenticatedUserId } from '@/lib/auth/session'
 import { createSupabaseServerClient } from '@/lib/supabase/server-client'
 import { removeObjects } from '@/lib/supabase/storage'
+import { getProfileService } from '@/services'
+import type { AccountSummary } from '@/types'
 
-import { ApiRouteError, withErrorBoundary } from '../_lib/server'
+import { ApiRouteError, resolveCurrentUser, withErrorBoundary } from '../_lib/server'
+
+export async function GET(): Promise<Response> {
+  return withErrorBoundary(async () => {
+    const { id, email } = await resolveCurrentUser()
+    const { plan } = await getProfileService()(id)
+    return NextResponse.json({ email, plan } satisfies AccountSummary)
+  })
+}
 
 const USER_DATA_TABLES = [
   'transactions',
