@@ -67,6 +67,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -88,7 +90,7 @@ jobs:
             gh pr review "$PR" --approve --body "✅ review-code 자동 승인"
           fi
       - name: 자동 머지 활성화
-        if: steps.gate.outputs.automerge == 'true'
+        if: steps.gate.outputs.automerge == 'true' && steps.gate.outputs.blocked != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh pr merge ${{ github.event.pull_request.number }} --auto --squash

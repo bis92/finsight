@@ -1,8 +1,12 @@
 // review-code CI 게이트 판정. counts(단일 진실 원천)로 머지 정책을 계산한다.
 export function decideGate(counts = {}) {
-  const critical = Number(counts.critical) || 0
-  const major = Number(counts.major) || 0
-  const minor = Number(counts.minor) || 0
+  const norm = (n) => {
+    const v = Number(n)
+    return Number.isFinite(v) ? Math.max(0, Math.trunc(v)) : 0
+  }
+  const critical = norm(counts.critical)
+  const major = norm(counts.major)
+  const minor = norm(counts.minor)
   if (critical + major >= 1) {
     return { event: 'REQUEST_CHANGES', automerge: false, blocked: true }
   }
