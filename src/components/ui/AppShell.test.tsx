@@ -122,4 +122,76 @@ describe('AppShell', () => {
       .map((a) => a.textContent?.trim())
     expect(active).toContain('파일 업로드')
   })
+
+  it('calls /api/portal and navigates to the returned url when 구독 관리 is clicked', async () => {
+    mocks.useAccount.mockReturnValue({
+      account: { email: 'me@finsight.dev', plan: 'pro' },
+      isUnauthenticated: false,
+    })
+    mocks.post.mockResolvedValue({ url: 'https://polar.sh/portal/x' })
+
+    // stub window.location so jsdom does not throw on href assignment
+    const originalLocation = window.location
+    Object.defineProperty(window, 'location', {
+      value: { href: '' },
+      writable: true,
+      configurable: true,
+    })
+
+    try {
+      await render()
+
+      await act(async () => {
+        findByText('구독 관리')?.click()
+      })
+      // flush microtasks
+      await act(async () => {
+        await new Promise<void>((resolve) => setTimeout(resolve, 0))
+      })
+
+      expect(mocks.post).toHaveBeenCalledWith('/api/portal', {})
+      expect(window.location.href).toBe('https://polar.sh/portal/x')
+    } finally {
+      Object.defineProperty(window, 'location', {
+        value: originalLocation,
+        writable: true,
+        configurable: true,
+      })
+    }
+  })
+
+  it('mobile drawer has a close button inside', async () => {
+    mocks.useAccount.mockReturnValue({
+      account: { email: 'me@finsight.dev', plan: 'pro' },
+      isUnauthenticated: false,
+    })
+    await render()
+
+    // open drawer
+    const menuBtn = Array.from(container.querySelectorAll<HTMLElement>('button')).find(
+      (b) => b.getAttribute('aria-label') === '메뉴 열기',
+    )
+    await act(async () => {
+      menuBtn?.click()
+    })
+
+    // close button must exist inside the drawer aside
+    const drawerAside = Array.from(container.querySelectorAll<HTMLElement>('aside')).find(
+      (el) => el.getAttribute('aria-label') === '사이드바',
+    )
+    expect(drawerAside).toBeTruthy()
+
+    const closeBtn = drawerAside?.querySelector<HTMLElement>('[aria-label="메뉴 닫기"]')
+    expect(closeBtn).toBeTruthy()
+
+    // clicking close should remove the drawer
+    await act(async () => {
+      closeBtn?.click()
+    })
+    expect(
+      Array.from(container.querySelectorAll<HTMLElement>('aside')).find(
+        (el) => el.getAttribute('aria-label') === '사이드바',
+      ),
+    ).toBeFalsy()
+  })
 })

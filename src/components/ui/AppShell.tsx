@@ -153,7 +153,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh lg:flex">
       {/* 데스크톱 고정 사이드바 */}
-      <aside className="hidden w-64 shrink-0 border-r border-hairline bg-canvas lg:sticky lg:top-0 lg:block lg:h-dvh">
+      <aside aria-label="내비게이션" className="hidden w-64 shrink-0 border-r border-hairline bg-canvas lg:sticky lg:top-0 lg:block lg:h-dvh">
         <SidebarBody pathname={pathname} />
       </aside>
 
@@ -179,7 +179,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             onClick={() => setDrawerOpen(false)}
             aria-hidden="true"
           />
-          <aside className="fs-slide fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] overflow-y-auto border-r border-hairline bg-canvas lg:hidden">
+          <aside aria-label="사이드바" className="fs-slide fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] overflow-y-auto border-r border-hairline bg-canvas lg:hidden">
+            <button
+              type="button"
+              aria-label="메뉴 닫기"
+              onClick={() => setDrawerOpen(false)}
+              className="absolute right-sm top-sm rounded-md p-xs text-body hover:bg-surface-soft"
+            >
+              <span aria-hidden="true">✕</span>
+            </button>
             <SidebarBody pathname={pathname} onNavigate={() => setDrawerOpen(false)} />
           </aside>
         </>
