@@ -5,6 +5,8 @@ vi.mock('server-only', () => ({}))
 import {
   getAnthropicApiKey,
   getDataSource,
+  getPosthogHost,
+  getPosthogToken,
   getPolarServer,
   getSupabaseAnonKey,
   getSupabaseServiceRoleKey,
@@ -13,6 +15,8 @@ import {
 
 const originalDataSource = process.env.DATA_SOURCE
 const originalPolarServer = process.env.POLAR_SERVER
+const originalPosthogToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
+const originalPosthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST
 const supabaseEnvironment = {
   ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -65,6 +69,52 @@ describe('getPolarServer', () => {
     expect(getPolarServer).toThrow(
       'POLAR_SERVER must be either "sandbox" or "production"',
     )
+  })
+})
+
+describe('getPosthogToken', () => {
+  afterEach(() => {
+    if (originalPosthogToken === undefined) {
+      delete process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
+      return
+    }
+
+    process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN = originalPosthogToken
+  })
+
+  it('returns token when set', () => {
+    process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN = 'phc_test'
+
+    expect(getPosthogToken()).toBe('phc_test')
+  })
+
+  it('returns null when token is missing', () => {
+    delete process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN
+
+    expect(getPosthogToken()).toBeNull()
+  })
+})
+
+describe('getPosthogHost', () => {
+  afterEach(() => {
+    if (originalPosthogHost === undefined) {
+      delete process.env.NEXT_PUBLIC_POSTHOG_HOST
+      return
+    }
+
+    process.env.NEXT_PUBLIC_POSTHOG_HOST = originalPosthogHost
+  })
+
+  it('defaults host to us cloud', () => {
+    delete process.env.NEXT_PUBLIC_POSTHOG_HOST
+
+    expect(getPosthogHost()).toBe('https://us.i.posthog.com')
+  })
+
+  it('returns configured host when set', () => {
+    process.env.NEXT_PUBLIC_POSTHOG_HOST = 'https://eu.i.posthog.com'
+
+    expect(getPosthogHost()).toBe('https://eu.i.posthog.com')
   })
 })
 
