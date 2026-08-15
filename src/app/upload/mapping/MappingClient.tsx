@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 
+import { captureEvent } from '@/lib/analytics/client'
+import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
 import { Badge, Button, Card, MappingRow } from '@/components/ui'
 import { classifyMany } from '@/lib/analysis'
 import { applyMapping, requiresManualMapping } from '@/lib/csv'
@@ -91,6 +93,7 @@ function PdfReview({
     if (transactions.length === 0) return
     upload.mutate({ source: 'pdf', fileName: draft.fileName, transactions }, {
       onSuccess: () => {
+        captureEvent(ANALYTICS_EVENTS.transactionsSaved, { source: 'pdf', transaction_count: transactions.length })
         sessionStorage.removeItem(UPLOAD_SESSION_KEY)
         onDone()
       },
@@ -169,8 +172,10 @@ function CsvMapping({
     if (!mapping || !canConfirm) return
     const transactions = classifyMany(applyMapping(draft.headers, draft.rows, mapping))
     if (transactions.length === 0) return
+    captureEvent(ANALYTICS_EVENTS.mappingCompleted, { source: 'csv', transaction_count: transactions.length })
     upload.mutate({ source: 'csv', fileName: draft.fileName, mapping, transactions }, {
       onSuccess: () => {
+        captureEvent(ANALYTICS_EVENTS.transactionsSaved, { source: 'csv', transaction_count: transactions.length })
         sessionStorage.removeItem(UPLOAD_SESSION_KEY)
         onDone()
       },
