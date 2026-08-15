@@ -27,14 +27,14 @@ description: 랜딩(/) 페이지를 Lighthouse로 측정하고 서브에이전�
    실패 시 → revert(아래).
 3. **재측정**: `npm run lh:measure -- --skip-build --out /tmp/lh-<n>.json`.
    (서브에이전트가 이미 build 했으므로 `--skip-build` 사용. 소스 변경이 build에 반영돼야 하면 build 포함.)
-4. **판정**: `compareScores(prev, curr)` + `isRegression(prev, curr)`를
-   `src/lib/perf/decision.ts` 로직으로 계산. 예:
-   `node --input-type=module -e "import {compareScores,isRegression} from './src/lib/perf/decision.ts'; ..."`
-   (ts 직접 실행이 안 되면 두 JSON의 scores를 직접 대조: perfDelta≥2 이면 improved,
-   accessibility/bestPractices/seo가 -2 넘게 하락하면 regression.)
+4. **판정**: `compareScores(prev, curr)` + `isRegression(prev, curr)` + `isMetricRegression(prev, curr)`를
+   `src/lib/perf/decision.ts` 로직으로 계산.
+   (ts 직접 실행이 안 되면 두 JSON을 직접 대조: perfDelta≥2 이면 improved;
+   accessibility/bestPractices/seo가 -2 넘게 하락하면 category regression;
+   **LCP가 1.2배 넘게 악화 / CLS +0.05 초과 / TBT 50ms↑에서 1.5배 초과면 metric regression**.)
 5. **keep / revert**:
-   - improved && !regression && 빌드·테스트 통과 → `git add -A && git commit -m "perf: <요약> (perf +Δ)"`.
-     curr을 prev로 승격.
+   - improved && !regression && !metricRegression && 빌드·테스트 통과 →
+     `git add -A && git commit -m "perf: <요약> (perf +Δ)"`. curr을 prev로 승격.
    - 아니면 → `git checkout . && git clean -fd`로 원복. 정체 카운트 +1.
 6. **Journal 기록**: iteration 번호, before→after 4점수, perfDelta, 변경 요약, keep/revert, 사유.
 7. **종료 판정**: `shouldStop(history)` — target/plateau/hardCap이면 루프 종료.

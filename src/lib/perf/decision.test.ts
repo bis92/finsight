@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { compareScores, isRegression, shouldStop, type IterationRecord, type LighthouseReport } from './decision'
+import {
+  compareScores,
+  isMetricRegression,
+  isRegression,
+  shouldStop,
+  type IterationRecord,
+  type LighthouseReport,
+} from './decision'
 
 function report(performance: number, overrides: Partial<LighthouseReport['scores']> = {}): LighthouseReport {
   return {
@@ -88,5 +95,42 @@ describe('shouldStop', () => {
   it('prefers target over hardCap when both hold', () => {
     const many = history(Array.from({ length: 15 }, (_, i) => [i === 14 ? 96 : 80, true] as [number, boolean]))
     expect(shouldStop(many)).toEqual({ stop: true, reason: 'target' })
+  })
+})
+
+function withMetrics(metrics: Partial<LighthouseReport['metrics']>): LighthouseReport {
+  const base = report(80)
+  return { ...base, metrics: { ...base.metrics, ...metrics } }
+}
+
+describe('isMetricRegression', () => {
+  it('returns false when core metrics hold or improve', () => {
+    const before = withMetrics({ lcp: 2000, cls: 0, tbt: 100 })
+    const after = withMetrics({ lcp: 1500, cls: 0, tbt: 80 })
+    expect(isMetricRegression(before, after)).toBe(false)
+  })
+
+  it('flags LCP regression beyond the ratio (default 1.2)', () => {
+    const before = withMetrics({ lcp: 2000 })
+    expect(isMetricRegression(before, withMetrics({ lcp: 2401 }))).toBe(true) // +20.05%
+    expect(isMetricRegression(before, withMetrics({ lcp: 2400 }))).toBe(false) // exactly +20%
+  })
+
+  it('flags CLS regression beyond the absolute delta (default 0.05)', () => {
+    const before = withMetrics({ cls: 0 })
+    expect(isMetricRegression(before, withMetrics({ cls: 0.06 }))).toBe(true)
+    expect(isMetricRegression(before, withMetrics({ cls: 0.05 }))).toBe(false)
+  })
+
+  it('flags TBT regression beyond the ratio but ignores tiny values under the floor', () => {
+    // 4ms -> 9ms: 큰 배율이지만 floor(50ms) 미만이라 무시
+    expect(isMetricRegression(withMetrics({ tbt: 4 }), withMetrics({ tbt: 9 }))).toBe(false)
+    // 100ms -> 200ms: floor 초과 + 1.5배 초과 -> 회귀
+    expect(isMetricRegression(withMetrics({ tbt: 100 }), withMetrics({ tbt: 200 }))).toBe(true)
+  })
+
+  it('respects custom thresholds', () => {
+    const before = withMetrics({ lcp: 2000 })
+    expect(isMetricRegression(before, withMetrics({ lcp: 2200 }), { lcpRatio: 1.05 })).toBe(true)
   })
 })

@@ -37,6 +37,34 @@ export function isRegression(
   return guarded.some((key) => after.scores[key] < before.scores[key] - margin)
 }
 
+const DEFAULT_LCP_RATIO = 1.2
+const DEFAULT_CLS_DELTA = 0.05
+const DEFAULT_TBT_RATIO = 1.5
+const DEFAULT_TBT_FLOOR = 50
+
+// 카테고리 점수 회귀(isRegression)와 별개로, 코어 웹 바이탈이 악화됐는지 본다.
+// Performance 총점은 가중 합이라 LCP가 무너져도 TBT/CLS/FCP가 좋으면 총점이 오를 수 있다.
+// 그런 "총점은 개선, 실사용 지표는 악화" 후보를 걸러내기 위한 가드.
+export function isMetricRegression(
+  before: LighthouseReport,
+  after: LighthouseReport,
+  opts: { lcpRatio?: number; clsDelta?: number; tbtRatio?: number; tbtFloor?: number } = {},
+): boolean {
+  const lcpRatio = opts.lcpRatio ?? DEFAULT_LCP_RATIO
+  const clsDelta = opts.clsDelta ?? DEFAULT_CLS_DELTA
+  const tbtRatio = opts.tbtRatio ?? DEFAULT_TBT_RATIO
+  const tbtFloor = opts.tbtFloor ?? DEFAULT_TBT_FLOOR
+
+  const b = before.metrics
+  const a = after.metrics
+
+  if (a.lcp > b.lcp * lcpRatio) return true
+  if (a.cls > b.cls + clsDelta) return true
+  if (a.tbt > tbtFloor && a.tbt > b.tbt * tbtRatio) return true
+
+  return false
+}
+
 export type IterationRecord = { performance: number; improved: boolean }
 export type StopReason = 'target' | 'plateau' | 'hardCap' | null
 
