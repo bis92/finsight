@@ -1,7 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+
+import { captureEvent } from '@/lib/analytics/client'
+import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
 
 import { Card, Badge, Button, Modal, SubscriptionRow } from '@/components/ui'
 import { aggregate, latestPeriod } from '@/lib/analysis'
@@ -54,6 +57,7 @@ export function ProReportClient({
 
     setCheckoutPending(true)
     setCheckoutError(null)
+    captureEvent(ANALYTICS_EVENTS.proCheckoutStarted)
     try {
       const { url } = await apiClient.post<{ url: string }>('/api/checkout', {})
       navigate(url)
@@ -70,6 +74,14 @@ export function ProReportClient({
       .reduce((sum, { amount }) => sum + amount, 0)
     return { fixed, variable: Math.max(0, snapshot.totalExpense - fixed), total: snapshot.totalExpense }
   }, [transactions, period])
+
+  useEffect(() => {
+    if (reportState.status !== 'success' || !report) return
+    captureEvent(ANALYTICS_EVENTS.proReportGenerated, { period })
+    if (report.aiDegraded) {
+      captureEvent(ANALYTICS_EVENTS.proInsightsDegraded, { period })
+    }
+  }, [reportState.status, report, period])
 
   if (profileState.status === 'loading') {
     return <main className="mx-auto max-w-container px-lg py-xxl"><p className="text-body-sm text-muted">Pro 권한을 확인하는 중입니다.</p></main>
