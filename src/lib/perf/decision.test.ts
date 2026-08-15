@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { compareScores, isRegression, type LighthouseReport } from './decision'
+import { compareScores, isRegression, shouldStop, type IterationRecord, type LighthouseReport } from './decision'
 
 function report(performance: number, overrides: Partial<LighthouseReport['scores']> = {}): LighthouseReport {
   return {
@@ -53,5 +53,40 @@ describe('isRegression', () => {
     const before = report(90)
     const after = report(80)
     expect(isRegression(before, after)).toBe(false)
+  })
+})
+
+function history(records: Array<[number, boolean]>): IterationRecord[] {
+  return records.map(([performance, improved]) => ({ performance, improved }))
+}
+
+describe('shouldStop', () => {
+  it('does not stop on empty history', () => {
+    expect(shouldStop([])).toEqual({ stop: false, reason: null })
+  })
+
+  it('stops with reason target when latest performance meets targetScore (default 95)', () => {
+    expect(shouldStop(history([[90, true], [96, true]]))).toEqual({ stop: true, reason: 'target' })
+  })
+
+  it('stops with reason plateau after plateauN consecutive non-improvements (default 3)', () => {
+    expect(shouldStop(history([[80, true], [80, false], [80, false], [80, false]]))).toEqual({
+      stop: true,
+      reason: 'plateau',
+    })
+  })
+
+  it('does not plateau-stop when improvements are interleaved', () => {
+    expect(shouldStop(history([[80, false], [82, true], [82, false]]))).toEqual({ stop: false, reason: null })
+  })
+
+  it('stops with reason hardCap when iteration count reaches the cap', () => {
+    const many = history(Array.from({ length: 15 }, () => [80, true] as [number, boolean]))
+    expect(shouldStop(many)).toEqual({ stop: true, reason: 'hardCap' })
+  })
+
+  it('prefers target over hardCap when both hold', () => {
+    const many = history(Array.from({ length: 15 }, (_, i) => [i === 14 ? 96 : 80, true] as [number, boolean]))
+    expect(shouldStop(many)).toEqual({ stop: true, reason: 'target' })
   })
 })
