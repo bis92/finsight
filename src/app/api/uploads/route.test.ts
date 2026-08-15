@@ -17,7 +17,11 @@ const mocks = vi.hoisted(() => ({
   generateInsights: vi.fn(),
 }))
 
-vi.mock('@/lib/env', () => ({ getDataSource: mocks.getDataSource }))
+vi.mock('@/lib/env', () => ({
+  getDataSource: mocks.getDataSource,
+  getPosthogToken: () => null,
+  getPosthogHost: () => 'https://posthog.test',
+}))
 vi.mock('@/lib/auth/session', () => ({ getAuthenticatedUserId: mocks.getAuthenticatedUserId }))
 vi.mock('@/lib/supabase/storage', () => ({
   createSignedUploadUrl: mocks.createSignedUploadUrl,
