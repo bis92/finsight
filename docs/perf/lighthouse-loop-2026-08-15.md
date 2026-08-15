@@ -57,3 +57,47 @@ Opportunities: `unused-javascript` (~150ms)
 `isRegression`이 **카테고리 점수만** 보고 개별 코어 웹 바이탈(LCP/CLS/TBT)은 안 봐서,
 Performance 총점이 오르면 LCP가 무너져도 keep으로 판정될 뻔했다.
 → `decision.ts`에 **코어 지표 회귀 가드**(예: LCP가 baseline 대비 20% 이상 악화 시 regression) 추가 필요.
+→ **적용 완료**: `isMetricRegression`(LCP 1.2배 / CLS +0.05 / TBT 50ms↑ 1.5배) 추가(TDD).
+
+### 측정 harness 결함 발견·수정 (중대)
+
+iteration 1의 LCP 14~19s를 파고든 결과, **Lighthouse 기본 Lantern 시뮬레이션 스로틀링이 이 랜딩에서
+관측 LCP 140ms를 시뮬 TTI(14.5s)에 고정해 보고**하는 아티팩트였다(simulated LCP == simulated TTI == 14561ms,
+관측 LCP == 140ms). 즉 iteration 1의 "LCP 악화"는 실제가 아니라 **측정 방식의 거짓 신호**였다.
+
+- **원인**: Lantern이 이 페이지의 LCP를 (부풀려진) 시뮬 TTI에 고정. 실제 Chrome 페인트는 즉시.
+- **수정**: `scripts/lighthouse/measure.mjs`를 `throttlingMethod: 'devtools'`(실측 스로틀링)로 전환 →
+  관측 페인트 기반이라 LCP 신뢰 가능.
+- **교훈**: baseline "Perf 61 / FCP 6.2s"도 Lantern 아티팩트였다. **실측 baseline은 Perf 92**.
+
+### Iteration 2 — 랜딩 고속화 (fonts + hero LCP) → **keep** 🎯
+
+**최적화**: (A) 렌더 차단 폰트 `@import` 체인 제거 → `next/font` self-host(`src/app/fonts.ts`),
+(B) hero의 LCP 임계 요소(총지출 텍스트·도넛 중앙·진단 카드)를 `opacity:0` 지연 애니메이션에서 분리해 즉시 렌더.
+장식(도넛 draw·bar grow·CSV 페이드·점 pulse)만 애니메이션 유지.
+
+**측정 델타** (devtools 스로틀링, median of 3):
+
+| 지표 | Baseline | Iteration 2 | Δ |
+|------|------|------|------|
+| Performance | 92 | **98** | +6 |
+| Accessibility | 96 | 96 | — |
+| Best Practices | 100 | 100 | — |
+| SEO | 100 | 100 | — |
+| LCP | 3048ms | **2098ms** | −950 |
+| FCP | 2167ms | **1573ms** | −594 |
+| TBT | 0ms | 4ms | +4 |
+| CLS | 0 | 0 | — |
+
+**판정**: improved(+6) && !isRegression && !isMetricRegression && build·test(250) 통과 → **keep**.
+`shouldStop`: Performance 98 ≥ 95 → **`target` 도달, 루프 종료**.
+
+## 최종 요약
+
+| | Performance | LCP | FCP | 종료 사유 |
+|---|---|---|---|---|
+| Baseline (devtools) | 92 | 3048ms | 2167ms | — |
+| **Final** | **98** | **2098ms** | **1573ms** | `target` (≥95) |
+
+적용된 최적화: next/font self-host(렌더 차단 폰트 체인 제거) + hero LCP 임계 요소 즉시 렌더.
+부수 성과: 측정 harness의 Lantern LCP 아티팩트 발견·수정, 코어 웹 바이탈 회귀 가드 추가.
