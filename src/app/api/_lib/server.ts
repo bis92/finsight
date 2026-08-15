@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 
+import { captureServerException } from '@/lib/analytics/server'
 import { buildFreeInsights } from '@/lib/analysis/insights'
 import { getAuthenticatedUser, getAuthenticatedUserId } from '@/lib/auth/session'
 import { missingRequiredRoles } from '@/lib/csv/aliases'
@@ -193,6 +194,7 @@ export async function withErrorBoundary(
     }
 
     console.error(error)
+    await captureServerException(error)
     return NextResponse.json(
       { message: INTERNAL_ERROR_MESSAGE },
       { status: 500 },

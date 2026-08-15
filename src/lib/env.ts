@@ -65,3 +65,11 @@ export function getPolarServer(): PolarServer {
 export function getSiteUrl(): string {
   return getRequiredEnvironmentVariable('NEXT_PUBLIC_SITE_URL')
 }
+
+export function getPosthogToken(): string | null {
+  return process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN ?? null
+}
+
+export function getPosthogHost(): string {
+  return process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com'
+}

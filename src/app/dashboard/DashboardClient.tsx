@@ -1,7 +1,10 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+
+import { captureEvent, setUserProperties } from '@/lib/analytics/client'
+import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
 
 import { aggregate, latestPeriod } from '@/lib/analysis'
 import { currentKstPeriod, formatKstDate } from '@/lib/format'
@@ -64,6 +67,19 @@ export function DashboardClient({ guest }: { guest: boolean }) {
   const filteredMerchants = aggregate(filteredTransactions, period).topMerchants.slice(0, 3)
   const maxCategory = Math.max(0, ...expenseCategories.map((item) => item.amount))
   const netBalance = snapshot.totalIncome - snapshot.totalExpense
+
+  useEffect(() => {
+    if (queryState.status !== 'success') return
+    captureEvent(ANALYTICS_EVENTS.dashboardViewed, {
+      is_guest: guest,
+      period,
+      transaction_count: transactions.length,
+    })
+  }, [queryState.status, guest, period, transactions.length])
+
+  useEffect(() => {
+    if (profile?.plan) setUserProperties({ plan: profile.plan })
+  }, [profile?.plan])
 
   if (queryState.status === 'loading') {
     return <main className="mx-auto max-w-container px-lg py-xxl"><p className="text-body-sm text-muted">대시보드를 불러오는 중입니다.</p></main>

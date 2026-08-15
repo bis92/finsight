@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation'
 import { type ChangeEvent, type DragEvent, useRef, useState } from 'react'
 
+import { captureEvent } from '@/lib/analytics/client'
+import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
 import { Badge, Button, Card } from '@/components/ui'
 import { buildMappingInput, decodeCsv, detectEncoding, parseCsv } from '@/lib/csv'
 import { MAX_PDF_BYTES } from '@/lib/pdf'
@@ -89,17 +91,23 @@ export function UploadClient() {
 
   const continueToMapping = () => {
     if (!parsed) return
+    captureEvent(ANALYTICS_EVENTS.uploadStarted, { file_type: parsed.source })
 
     if (parsed.source === 'pdf') {
       extractPdf.mutate(
         { fileName: parsed.fileName, dataBase64: parsed.dataBase64 },
-        { onSuccess: (transactions) => store({ source: 'pdf', fileName: parsed.fileName, transactions }) },
+        { onSuccess: (transactions) => {
+          captureEvent(ANALYTICS_EVENTS.uploadCompleted, { file_type: 'pdf', row_count: transactions.length })
+          store({ source: 'pdf', fileName: parsed.fileName, transactions })
+        } },
       )
       return
     }
 
-    const openMapping = (mappingResult: ColumnMappingResult) =>
+    const openMapping = (mappingResult: ColumnMappingResult) => {
+      captureEvent(ANALYTICS_EVENTS.uploadCompleted, { file_type: 'csv', row_count: parsed.rows.length })
       store({ source: 'csv', fileName: parsed.fileName, encoding: parsed.encoding, headers: parsed.headers, rows: parsed.rows, mappingResult })
+    }
     mappingPreview.mutate(buildMappingInput(parsed.headers, parsed.rows), {
       onSuccess: openMapping,
       onError: () => openMapping({

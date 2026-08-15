@@ -24,6 +24,8 @@ vi.mock('@/queries/transactions', () => ({
   useTransactions: () => ({ transactions, queryState: { status: 'success', error: null } }),
 }))
 
+vi.mock('@/lib/analytics/client', () => ({ captureEvent: vi.fn(), setUserProperties: vi.fn() }))
+
 vi.mock('@/queries/analyses', () => ({
   useProReport: (_period: string, enabled: boolean) => ({
     report: enabled ? {
