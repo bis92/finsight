@@ -1,3 +1,4 @@
+import { logError } from '@/lib/observability/logger'
 import { createSupabaseServerClient } from '@/lib/supabase/server-client'
 
 const DEFAULT_DESTINATION = '/upload'
@@ -24,15 +25,15 @@ export async function GET(request: Request): Promise<Response> {
   )
 
   if (providerError) {
-    console.error('OAuth provider returned an error', {
-      error: providerError,
-      description: providerErrorDescription,
+    await logError('OAuth provider returned an error', {
+      error: { error: providerError, description: providerErrorDescription },
+      route: '/auth/callback',
     })
     return redirect(requestUrl, LOGIN_FAILURE_DESTINATION)
   }
 
   if (!code) {
-    console.error('OAuth callback did not include an authorization code')
+    await logError('OAuth callback did not include an authorization code', { route: '/auth/callback' })
     return redirect(requestUrl, LOGIN_FAILURE_DESTINATION)
   }
 
@@ -41,7 +42,7 @@ export async function GET(request: Request): Promise<Response> {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (error) {
-      console.error('OAuth session exchange failed', error)
+      await logError('OAuth session exchange failed', { error, route: '/auth/callback' })
       return redirect(requestUrl, LOGIN_FAILURE_DESTINATION)
     }
 
@@ -50,7 +51,7 @@ export async function GET(request: Request): Promise<Response> {
       getSafeDestination(requestUrl.searchParams.get('next')),
     )
   } catch (error) {
-    console.error('OAuth callback failed', error)
+    await logError('OAuth callback failed', { error, route: '/auth/callback' })
     return redirect(requestUrl, LOGIN_FAILURE_DESTINATION)
   }
 }
