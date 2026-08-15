@@ -186,10 +186,6 @@ const HA_STYLES = `
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes ha-fade-up {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
 @keyframes ha-draw {
   from { stroke-dashoffset: var(--ha-dash); }
   to   { stroke-dashoffset: 0; }
@@ -197,14 +193,6 @@ const HA_STYLES = `
 @keyframes ha-grow {
   from { width: 0%; }
   to   { width: var(--ha-bar-w); }
-}
-@keyframes ha-blur-in {
-  from { opacity: 0; filter: blur(8px); clip-path: inset(0 100% 0 0); }
-  to   { opacity: 1; filter: blur(0); clip-path: inset(0 0 0 0); }
-}
-@keyframes ha-type-in {
-  from { opacity: 0; clip-path: inset(0 100% 0 0); }
-  to   { opacity: 1; clip-path: inset(0 0 0 0); }
 }
 @keyframes ha-dot-pulse {
   0%, 80%, 100% { opacity: 0.3; transform: scale(0.85); }
@@ -221,42 +209,42 @@ const HA_STYLES = `
 .ha-arc {
   animation: ha-draw 0.7s ease-out forwards;
 }
+/*
+ * LCP 후보(큰 콘텐츠 요소)는 지연 애니메이션에 묶지 않는다:
+ *   .ha-donut-center(43% 라벨), .ha-total(28px 총지출), .ha-diag(진단 카드),
+ *   .ha-diag-title/.ha-diag-sub(진단 문장)은 처음부터 opacity 1 로 즉시 페인트.
+ * 순수 장식(아크 draw, 바 grow, 점 pulse, CSV 라인 fade)만 애니메이션 유지.
+ */
 .ha-donut-center {
-  opacity: 0;
-  animation: ha-fade-slide 0.5s ease-out 1.9s forwards;
+  opacity: 1;
 }
 
-/* 3) 카테고리 바 성장 */
+/* 3) 카테고리 바 성장 (장식) */
 .ha-bar-fill {
   width: 0%;
   animation: ha-grow 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* 4) 총지출 리빌 */
+/* 4) 총지출 — LCP 후보: 즉시 표시 */
 .ha-total {
-  opacity: 0;
-  animation: ha-blur-in 0.6s ease-out 2.2s forwards;
+  opacity: 1;
 }
 
-/* 5) AI 진단 카드 */
+/* 5) AI 진단 카드 — LCP 후보: 즉시 표시 */
 .ha-diag {
-  opacity: 0;
-  animation: ha-fade-up 0.5s ease-out 2.5s forwards;
+  opacity: 1;
 }
 .ha-thinking {
-  opacity: 0;
-  animation: ha-fade-slide 0.4s ease-out 2.7s forwards;
+  opacity: 1;
 }
 .ha-dot {
   animation: ha-dot-pulse 1.2s ease-in-out infinite;
 }
 .ha-diag-title {
-  opacity: 0;
-  animation: ha-type-in 0.6s steps(24, end) 3.2s forwards;
+  opacity: 1;
 }
 .ha-diag-sub {
-  opacity: 0;
-  animation: ha-type-in 0.7s steps(30, end) 3.9s forwards;
+  opacity: 1;
 }
 
 /* CRITICAL: reduced-motion — 모든 transform/keyframes 끄고 최종 조립 상태 고정 */

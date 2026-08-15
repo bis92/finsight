@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 
 import { Providers } from '@/app/providers'
+import { inter, jetBrainsMono, pretendard } from '@/app/fonts'
 
 import './globals.css'
 
@@ -18,7 +19,11 @@ const THEME_SCRIPT = `(function(){try{var k='fs-theme';var s=localStorage.getIte
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="ko" suppressHydrationWarning>
+    <html
+      lang="ko"
+      className={`${pretendard.variable} ${inter.variable} ${jetBrainsMono.variable}`}
+      suppressHydrationWarning
+    >
       <body>
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <Providers>{children}</Providers>
