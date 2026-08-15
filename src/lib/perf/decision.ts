@@ -24,3 +24,15 @@ export function compareScores(
   const perfDelta = after.scores.performance - before.scores.performance
   return { improved: perfDelta >= margin, perfDelta }
 }
+
+const DEFAULT_CATEGORY_MARGIN = 2
+
+export function isRegression(
+  before: LighthouseReport,
+  after: LighthouseReport,
+  opts: { categoryMargin?: number } = {},
+): boolean {
+  const margin = opts.categoryMargin ?? DEFAULT_CATEGORY_MARGIN
+  const guarded: Array<keyof CategoryScores> = ['accessibility', 'bestPractices', 'seo']
+  return guarded.some((key) => after.scores[key] < before.scores[key] - margin)
+}

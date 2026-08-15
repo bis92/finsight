@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { compareScores, type LighthouseReport } from './decision'
+import { compareScores, isRegression, type LighthouseReport } from './decision'
 
 function report(performance: number, overrides: Partial<LighthouseReport['scores']> = {}): LighthouseReport {
   return {
@@ -27,5 +27,31 @@ describe('compareScores', () => {
   it('respects a custom noise margin', () => {
     expect(compareScores(report(80), report(84), { perfNoiseMargin: 5 }).improved).toBe(false)
     expect(compareScores(report(80), report(85), { perfNoiseMargin: 5 }).improved).toBe(true)
+  })
+})
+
+describe('isRegression', () => {
+  it('returns false when non-performance categories hold or improve', () => {
+    const before = report(70)
+    const after = report(90) // 성능만 오르고 나머지는 100 유지
+    expect(isRegression(before, after)).toBe(false)
+  })
+
+  it('flags regression when accessibility drops beyond the margin (default 2)', () => {
+    const before = report(70)
+    const after = report(90, { accessibility: 97 }) // 100 -> 97, -3
+    expect(isRegression(before, after)).toBe(true)
+  })
+
+  it('ignores drops within the margin', () => {
+    const before = report(70)
+    const after = report(90, { seo: 98 }) // 100 -> 98, -2, 마진 이내
+    expect(isRegression(before, after)).toBe(false)
+  })
+
+  it('ignores performance drops (performance is the optimization target, not a regression source)', () => {
+    const before = report(90)
+    const after = report(80)
+    expect(isRegression(before, after)).toBe(false)
   })
 })
