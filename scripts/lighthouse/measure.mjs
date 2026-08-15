@@ -98,7 +98,16 @@ async function main() {
       const result = await lighthouse(
         url,
         { port: chrome.port, output: 'json', logLevel: 'error' },
-        { extends: 'lighthouse:default', settings: { onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'] } },
+        {
+          extends: 'lighthouse:default',
+          settings: {
+            onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'],
+            // 실측(applied) 스로틀링. 기본 Lantern 시뮬레이션은 이 랜딩에서 LCP를
+            // (부풀려진) 시뮬 TTI에 고정해 관측 LCP 140ms를 14.5s로 보고하는 아티팩트가 있다.
+            // devtools 스로틀링은 관측 페인트 기반이라 LCP가 신뢰 가능하다.
+            throttlingMethod: 'devtools',
+          },
+        },
       )
       reports.push(toReport(result.lhr, url))
     }
