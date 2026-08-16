@@ -1,0 +1,116 @@
+name: CI Autofix
+
+# 사람이 시켜서가 아니라 "기본 CI가 깨졌다"는 사실 자체가 트리거인 사고 대응 잡.
+# CI 워크플로가 push→main 에서 실패했을 때만 깨어나, 실패 로그를 읽고 근본 원인을 분석해
+# 수정 브랜치 → PR 을 연다. 산출물은 무조건 PR (자동 머지 금지, 사람 게이트).
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+  # 시크릿 설정 후 수동 검증용 시임. run_id 로 특정 실패 run 을 지정해 재현.
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Failed CI run id to analyze and fix"
+        required: true
+
+# deploy 권한 없음 = prod read-only. 브랜치 push + PR 생성 권한만.
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ci-autofix-${{ github.event.workflow_run.id || github.event.inputs.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  autofix:
+    name: analyze failure → open fix PR
+    runs-on: ubuntu-latest
+    # 사고 범위(main 병합 후 실패만) + 무한루프/포크/봇 가드. 모두 AND.
+    #  - 수정 PR 은 oncall/ci-fix-* 브랜치로 열려 head_branch 가 main 이 아니고,
+    #    PR CI 는 event == 'pull_request' 라 아래 가드를 못 넘는다 → 구조적 루프 불가.
+    #  - 포크(head_repository != 이 리포)·봇 액터는 명시적으로 skip → 이중 방어.
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      ( github.event.workflow_run.conclusion == 'failure' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        !endsWith(github.event.workflow_run.actor.login, '[bot]') )
+    steps:
+      - name: Resolve failed run id
+        id: run
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "id=${{ github.event.inputs.run_id }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "id=${{ github.event.workflow_run.id }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Collect and redact failed job logs
+        id: logs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # 실패 스텝 로그만. 실패-only 조회가 비면 전체 로그로 폴백.
+          gh run view "${{ steps.run.outputs.id }}" --repo "${{ github.repository }}" --log-failed > raw-logs.txt 2>/dev/null || \
+            gh run view "${{ steps.run.outputs.id }}" --repo "${{ github.repository }}" --log > raw-logs.txt
+          # secret 레닥션: GitHub 이 등록 시크릿을 로그에서 이미 *** 로 마스킹하지만,
+          # 토큰류 정규식으로 한 번 더 지운다(이중 방어). 최근 60KB 로 절단.
+          sed -E \
+            -e 's/sk-[A-Za-z0-9_-]{16,}/[REDACTED]/g' \
+            -e 's/phc_[A-Za-z0-9]{16,}/[REDACTED]/g' \
+            -e 's/gh[pousr]_[A-Za-z0-9]{20,}/[REDACTED]/g' \
+            -e 's/[Bb]earer[[:space:]]+[A-Za-z0-9._-]{16,}/Bearer [REDACTED]/g' \
+            -e 's/eyJ[A-Za-z0-9._-]{20,}/[REDACTED]/g' \
+            raw-logs.txt | tail -c 60000 > redacted-logs.txt
+          rm -f raw-logs.txt
+          echo "---- redacted failed logs (tail) ----"
+          tail -n 40 redacted-logs.txt || true
+
+      - name: Analyze root cause and open fix PR
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ github.token }}
+          claude_args: "--max-turns 25"
+          prompt: |
+            너는 finsight 리포의 oncall(운영) 엔지니어다. main 브랜치의 CI 가 방금 실패했다.
+            아래 절차로 근본 원인을 고치는 PR 하나를 열어라. 산출물은 오직 PR 이다.
+
+            컨텍스트:
+            - 실패한 CI run id: ${{ steps.run.outputs.id }}
+            - 레닥션된 실패 로그 파일: ${{ github.workspace }}/redacted-logs.txt
+            - 현재 체크아웃: main 최신
+            - 로컬 검증 명령: `npm ci` 후 `npm run lint`, `npm run test`, `npm run build`
+
+            할 일:
+            1. redacted-logs.txt 를 읽어 어떤 스텝(lint/test/build)이 왜 깨졌는지 근본 원인을 특정한다.
+            2. 원인을 고치는 **최소 diff** 를 만든다. 관련 없는 리팩터링·포맷팅 금지.
+            3. 새 브랜치 `oncall/ci-fix-${{ steps.run.outputs.id }}` 를 만들어 커밋한다.
+               커밋 메시지는 conventional commits (예: `fix: ...`).
+            4. 가능하면 로컬에서 해당 검증 명령을 다시 돌려 초록인지 확인한다.
+            5. 그 브랜치에서 main 으로 PR 을 연다. PR 본문에 다음을 한국어로 명확히 적는다:
+               - **무엇이 깨졌나** (실패 스텝·증상)
+               - **근본 원인**
+               - **어떻게 고쳤나** (변경 파일·이유)
+               - 마지막 줄: "자동 생성된 수정 PR입니다. 사람이 리뷰 후 머지하세요."
+
+            엄수할 제약:
+            - **자동 머지 금지.** PR 만 열고 절대 머지하지 마라.
+            - **prod 직접 수정 금지.** `.env`·`.env.*`·배포 설정·Vercel/Polar/Supabase 운영 설정,
+              그리고 `.github/workflows/` 아래 CI 파일을 수정하지 마라(사고 원인이 앱 코드가 아니면
+              고치지 말고 PR 본문에 원인만 설명해라).
+            - **시크릿·로그 원문 노출 금지.** PR 본문·커밋에 토큰/키/전체 로그를 붙여넣지 마라.
+              필요하면 원인 라인만 짧게 인용하되 값은 [REDACTED] 로 둬라.
+            - 원인을 코드로 고칠 수 없으면(인프라·플래키 등) 수정 없이, 진단만 담은 PR 본문 대신
+              이슈성 요약을 PR 로 열지 말고 로그에 남겨라.
