@@ -32,6 +32,8 @@ vi.mock('@/queries/profile', () => ({
   useProfile: () => ({ profile: { id: 'user', plan: 'free' }, queryState: { status: 'success', error: null } }),
 }))
 
+vi.mock('@/lib/analytics/client', () => ({ captureEvent: vi.fn(), setUserProperties: vi.fn() }))
+
 describe('DashboardClient', () => {
   let container: HTMLDivElement
   let root: Root

@@ -3,6 +3,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
 
+import { PostHogUserSync } from '@/components/analytics/PostHogUserSync'
+
 type ProvidersProps = Readonly<{
   children: React.ReactNode
 }>
@@ -10,5 +12,10 @@ type ProvidersProps = Readonly<{
 export function Providers({ children }: ProvidersProps) {
   const [queryClient] = useState(() => new QueryClient())
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  return (
+    <QueryClientProvider client={queryClient}>
+      <PostHogUserSync />
+      {children}
+    </QueryClientProvider>
+  )
 }

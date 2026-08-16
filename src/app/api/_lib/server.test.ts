@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('server-only', () => ({}))
 
@@ -10,7 +10,13 @@ vi.mock('@/lib/auth/session', () => ({
   getAuthenticatedUserId: getAuthenticatedUserIdMock,
 }))
 
-import { ApiRouteError, requireConfirmedMapping, resolveCurrentUserId } from '@/app/api/_lib/server'
+const { captureServerException } = vi.hoisted(() => ({
+  captureServerException: vi.fn().mockResolvedValue(undefined),
+}))
+
+vi.mock('@/lib/analytics/server', () => ({ captureServerException }))
+
+import { ApiRouteError, requireConfirmedMapping, resolveCurrentUserId, withErrorBoundary } from '@/app/api/_lib/server'
 
 const originalDataSource = process.env.DATA_SOURCE
 
@@ -65,5 +71,20 @@ describe('resolveCurrentUserId', () => {
 
     await expect(resolveCurrentUserId()).resolves.toBe('live-user-123')
     expect(getAuthenticatedUserIdMock).toHaveBeenCalledOnce()
+  })
+})
+
+describe('withErrorBoundary exception capture', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('does not capture expected ApiRouteError', async () => {
+    await withErrorBoundary(async () => { throw new ApiRouteError(400, 'bad') })
+    expect(captureServerException).not.toHaveBeenCalled()
+  })
+
+  it('captures unexpected errors', async () => {
+    const error = new Error('boom')
+    await withErrorBoundary(async () => { throw error })
+    expect(captureServerException).toHaveBeenCalledWith(error)
   })
 })

@@ -1,6 +1,8 @@
 import { validateEvent } from '@polar-sh/sdk/webhooks'
 import { NextResponse } from 'next/server'
 
+import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
+import { captureServerEvent } from '@/lib/analytics/server'
 import { getPolarWebhookSecret } from '@/lib/polar/client'
 import { createSupabaseServiceRoleClient } from '@/lib/supabase/service-role-client'
 
@@ -110,6 +112,8 @@ async function activatePlan(event: PlanEvent): Promise<void> {
     .eq('id', userId)
 
   if (error) throw error
+
+  await captureServerEvent(userId, ANALYTICS_EVENTS.proActivated, { source: 'polar' })
 }
 
 async function currentSubscriptionId(userId: string): Promise<string | null> {

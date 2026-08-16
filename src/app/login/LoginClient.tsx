@@ -4,6 +4,8 @@ import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
+import { captureEvent } from '@/lib/analytics/client'
+import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
 import { ApiError, apiClient } from '@/lib/apiClient'
 import type { DataSource } from '@/lib/env'
 
@@ -19,6 +21,7 @@ export function LoginClient({ dataSource }: { dataSource: DataSource }) {
   const login = async (provider: OAuthProvider) => {
     setPending(true)
     setError(null)
+    captureEvent(ANALYTICS_EVENTS.loginStarted, { provider })
     try {
       if (dataSource === 'mock') {
         const result = await apiClient.post<StubLoginResponse>('/api/auth/stub', {})

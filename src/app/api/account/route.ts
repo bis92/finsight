@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+import { ANALYTICS_EVENTS } from '@/lib/analytics/events'
+import { captureServerEvent } from '@/lib/analytics/server'
 import { getAuthenticatedUserId } from '@/lib/auth/session'
 import { createSupabaseServerClient } from '@/lib/supabase/server-client'
 import { removeObjects } from '@/lib/supabase/storage'
@@ -69,6 +71,7 @@ export async function DELETE(): Promise<Response> {
       // profiles remains while the Supabase Auth identity remains. Deleting the
       // Auth user requires an admin/service-role call and is outside this data-only
       // step; the auth.users cascade owns profile deletion when that policy lands.
+      await captureServerEvent(userId, ANALYTICS_EVENTS.accountDeleted)
       return new NextResponse(null, { status: 204 })
     } catch (error) {
       console.error(`Account data deletion failed after ${completedStage}`, error)

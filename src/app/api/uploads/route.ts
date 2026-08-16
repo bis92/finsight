@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 
 import { getAuthenticatedUserId } from '@/lib/auth/session'
 import { getDataSource } from '@/lib/env'
+import { logError } from '@/lib/observability/logger'
 import { uploadObjectPath } from '@/lib/supabase/storage'
 import { getTransactionsRepository, getUploadsService } from '@/services'
 import { createUpload, setUploadStatus } from '@/services/live/uploads'
@@ -102,7 +103,7 @@ async function postLiveUpload(request: Request): Promise<Response> {
       try {
         await setUploadStatus(userId, upload.id, 'error', INTERNAL_ERROR_MESSAGE)
       } catch (statusError) {
-        console.error(statusError)
+        await logError('Upload status update failed', { error: statusError, route: '/api/uploads', method: 'POST' })
       }
       throw error
     }
